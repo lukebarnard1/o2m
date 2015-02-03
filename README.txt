@@ -22,11 +22,11 @@ Server:
 The server will be a web server based on the DJango library. A very simple RESTful API will be used so that users can GET,PUT,UPDATE and DELETE their own posts and comments locally but also PUT and DELETE their comments.
 
 OWNER 				SERVER 		FRIENDS
-	GET post->			|	<- PUT comment link
+	GET post->		|	<- PUT comment link
 	DELETE post->		|	<- DELETE comment link
 	UPDATE post->		|
-	PUT post->			|
-						|
+	PUT post->		|
+				|
 	DELETE comment->	|
 	UPDATE comment->	|
 	PUT comment->		|
