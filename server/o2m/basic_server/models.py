@@ -4,9 +4,9 @@ from django.db import models
 
 
 class Friend(models.Model):
-	name = models.CharField()
+	name = models.CharField(max_length=128)
 	address = models.IPAddressField()
-	password = models.CharField()
+	password = models.CharField(max_length=32)
 
 class Content(models.Model):
 	file_path = models.FilePathField()
@@ -16,4 +16,4 @@ class Content(models.Model):
 class Link(models.Model):
 	friend = models.ForeignKey(Friend) # (Could be yourself)
 	content = models.BigIntegerField() # (Could be your own)
-	previous = models.ForeignKey(Link) # to the previous link in the tree
+	next = models.BigIntegerField() # to the next link in the tree
