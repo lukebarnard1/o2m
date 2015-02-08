@@ -11,7 +11,7 @@ Friend
 	- Password
 
 Content
-	- Content text
+	- Content local file name
 	- Creation time
 	- Integer: Non-descript to allow variations
 
