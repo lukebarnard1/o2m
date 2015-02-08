@@ -2,22 +2,18 @@ from django.db import models
 
 # Create your models here.
 
-'''
-MODEL ARCHITECTURE
 
-Friend
-	- Name
-	- IP Address
-	- Password
+class Friend(models.Model):
+	name = models.CharField()
+	address = models.IPAddressField()
+	password = models.CharField()
 
-Content
-	- Content local file name
-	- Creation time
-	- Integer: Non-descript to allow variations
+class Content(models.Model):
+	file_path = models.FilePathField()
+	creation_time = models.DateTimeField()
+	integer = models.IntegerField() # Non-descript to allow variations
 
-Link
-	- Friend (Could be yourself)
-	- Content (Could be your own)
-	- Link: to the previous link in the tree
-
-'''
+class Link(models.Model):
+	friend = models.ForeignKey(Friend) # (Could be yourself)
+	content = models.BigIntegerField() # (Could be your own)
+	previous = models.ForeignKey(Link) # to the previous link in the tree
