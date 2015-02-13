@@ -1,0 +1,35 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>O2M</title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="extra/lib/bootstrap/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="extra/lib/bootstrap/css/bootstrap-theme.min.css">
+
+	<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+	
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="extra/lib/bootstrap/js/bootstrap.min.js"></script>
+
+	<style>
+		.media-left{
+			min-width:50px;
+		}
+	</style>
+	<script>
+		$(document).ready(function(){
+			$(document).on('click', function (e) {
+				if (e.target.tagName == 'IMG') {
+					console.log('edit image');
+				}
+			})
+		});
+	</script>
+</head>
+<body>
+	{% block body %}{% endblock %}
+</body>
+</html>

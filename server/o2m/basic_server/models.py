@@ -19,7 +19,7 @@ class Content(models.Model):
 	integer = models.IntegerField() # Non-descript to allow variations
 
 	def __str__(self):
-		return "Content {0}".format(self.id)
+		return "Content at {0}, created {1}".format(self.file_path, self.creation_time)
 
 class Link(models.Model):
 	friend = models.ForeignKey(Friend) # (Could be yourself)

@@ -16,6 +16,13 @@ O2M_BASE = os.path.join(BASE_DIR, 'social')
 MEDIA_ROOT = O2M_BASE
 MEDIA_URL = '/media/'
 
+EXTRA_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.7/howto/static-files/
+
+STATIC_URL = '/static_/'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -82,7 +89,3 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
-
-STATIC_URL = '/static/'
