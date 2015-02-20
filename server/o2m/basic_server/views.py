@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
 from django.utils.html import escape
+from django.utils.datastructures import MultiValueDictKeyError
+from django.contrib.auth import authenticate, login
 
 from basic_server.models import Link, LinkEdge, Content
 
@@ -87,13 +89,46 @@ class ContentView(View):
 			return link
 
 	def get_content(self):
+		print self,".get_content()"
 		link = get_object_or_404(Link, content = self.content_id, friend = 1)
 		content = self.traverse_posts(link.id)
 		return self.render(self.markup, content)
 
 	def get(self, request):
-		print self.password*12
-		return HttpResponse(self.get_content())
+
+		# Authentication required: is this a friend, me or someone else?
+		#	- If it is me, html is possible and links are therefore followed.
+		#	- If it is not me, only json is possible and links are returned.
+
+		response = HttpResponse()
+		print 'Getting...'
+		try:
+			username = request.GET['username']
+			password = request.GET['password']
+			print 'Authenticating...'
+			user = authenticate(username=username, password=password)
+			print 'User...',user
+			if user is not None:
+				if username != 'Luke Barnard':
+					self.markup = 'json'
+
+				if user.is_active:
+					login(request, user)
+					response.content = self.get_content()
+					response.reason_phrase = 'Go right ahead and read my posts'
+					response.status_code = 200
+				else:
+					response.reason_phrase = 'You are not my friend anymore'
+					response.status_code = 401
+
+			else:
+				response.reason_phrase = 'You are not my friend'
+				response.status_code = 401
+		except MultiValueDictKeyError as e:
+			response.reason_phrase = 'Give me username and password',e
+			response.status_code = 401
+
+		return response
 
 	def render(self, markup, content):
 		if markup == 'html':
@@ -120,15 +155,16 @@ class ContentView(View):
 		else:
 			html += '<ul class="link media-list">'
 			# It is a link
+			print self.limit
 			if render_links and self.limit > 0:
 				self.limit -= 1
 				# Fetch the link
 				friend = content['friend']
 
-				source_address = '/content/{0}.json[{1}]'.format(content['content'], "WRONGPASSWORD")
+				source_address = '/content/{0}.json'.format(content['content'])
 				con = httplib.HTTPConnection(friend['address'], friend['port'])
 				try:
-					con.request('GET', source_address)
+					con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password':'o27845ylrjsrt4i7yt7'}))
 					resp = con.getresponse()
 
 					js = resp.read()
@@ -137,8 +173,8 @@ class ContentView(View):
 						html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(self.render_html(loaded_content, level + 1, render_links), friend['name'])
 					except Exception as e:
 
-						html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e)
-						html += js
+						html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
+						if resp.status == 500: html += 'Response text: ' + js
 				finally:
 					con.close()
 			else:
@@ -171,15 +207,9 @@ def posts(request, markup):
 		return MainView.as_view(content_id = 1)(request)
 
 
-def content(request, content_id, markup, password):
-	print content_id, markup, password
-	if password is not None:
-		if markup is not None:
-			print "1 Set password to " + password
-			return ContentView.as_view(markup = markup, content_id = content_id, password = password)(request)
-		else:
-			print "2 Set password to " + password
-			return ContentView.as_view(content_id = content_id, password = password)(request)
+def content(request, content_id, markup):
+	if markup is not None:
+		return ContentView.as_view(markup = markup, content_id = content_id)(request)
 	else:
-		raise Exception("No password")
+		return ContentView.as_view(content_id = content_id)(request)
 
