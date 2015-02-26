@@ -26,7 +26,6 @@ def file_path_to_media(file_path):
 	return o2m.settings.MEDIA_URL + file_path[len(o2m.settings.O2M_BASE) + 1:]
 
 def read_file(file_path):
-	file_path = file_path_to_media(file_path)
 	try:
 		# print 'o2m.settings.MEDIA_ROOT={0}'.format(o2m.settings.MEDIA_ROOT)
 		# print 'o2m.settings.MEDIA_URL={0}'.format(o2m.settings.MEDIA_URL)
@@ -42,6 +41,7 @@ def read_file(file_path):
 		return 'Failed to read text file at ' + file_path
 
 def file_to_html(file_path):
+	file_path = file_path_to_media(file_path)
 	file_type = file_path[file_path.rindex('.') + 1:].lower()
 
 	if file_type in ['txt', 'html']:
@@ -66,39 +66,7 @@ class ContentView(View):
 	limit = 3
 	password = "pass"
 
-	# def traverse_posts(self, link = 1, limit = 10):
-	# 	"""Starting from a particular link, traverse link edges, which
-	# 	are pairs of links until either there are no more child nodes
-	# 	to traverse or the recursion depth limit is met. Returns a
-	# 	dictionary containing links and content in the tree of links.
-	# 	Some content will not have any children. Others won't have a
-	# 	children list at all - these are links to friend's content.
-	# 	"""
-	# 	django_link = Link.objects.get(pk = link)
-	# 	django_content = django_link.get_content()
-
-	# 	if django_content:
-	# 		content = model_to_dict(django_content)
-
-	# 		content['creation_time'] = content['creation_time'].__str__()
-	# 		content['children'] = []
-	# 		content['file_path'] = file_path_to_media(content['file_path'])
-	# 		if limit > 1:
-
-	# 			link_edges = LinkEdge.objects.filter(a = link)
-				
-	# 			if len(link_edges) > 0:
-	# 				for edge in link_edges:
-	# 					child = self.traverse_posts(child, limit - 1)
-	# 					content['children'].append(child)
-	# 		return content
-	# 	else:
-	# 		link = model_to_dict(django_link)
-	# 		link['friend'] = model_to_dict(django_link.friend)
-	# 		return link
-
 	def get_content(self):
-		print self.__str__() + ".get_content()"
 		link = get_object_or_404(Link, content = self.content_id, friend = 1)
 		# content = self.traverse_posts(link.id)
 		return self.render(self.markup, link)
@@ -147,16 +115,16 @@ class ContentView(View):
 
 		return response
 
-	def render(self, markup, content):
+	def render(self, markup, link):
 		if markup == 'html':
-			return self.render_html(content)
+			return self.render_html(link)
 		elif markup == 'json':
-			return self.render_json(content)
+			return self.render_json(link)
 		else:
 			raise Exception('Format not supported')
 
-	def render_json(self, content):
-		return json.dumps(content)
+	def render_json(self, link):
+		return json.dumps(model_to_dict(link))
 
 	def content_from_friend(self, link):
 		friend = link.friend
@@ -173,8 +141,6 @@ class ContentView(View):
 			new_password = resp.getheader('np')
 
 			if new_password is not None:
-				print 'New password for {0} is {1}'.format(friend.name, new_password)
-
 				friend.password = new_password
 				friend.save()
 
@@ -182,18 +148,16 @@ class ContentView(View):
 			try:
 				loaded_content = json.loads(js)
 
-				class TempLink():
-					def __init__(self, loaded_content):
-						self.loaded_content = loaded_content
+				for name, cls in [('parent', Link),('friend', Friend)]:
+					if loaded_content[name]: 
+						loaded_content[name] = cls.objects.get(pk=loaded_content[name])
+					else:
+						loaded_content[name] = None
 
-					def get_content(self):
-						return self.loaded_content
-
-				populated_link = TempLink(loaded_content)
+				populated_link = Link(**loaded_content)
 
 				html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(self.render_html(populated_link), friend.name)
 			except Exception as e:
-
 				html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
 				if resp.status == 500: html += 'Response text: ' + js
 		finally:
@@ -204,28 +168,27 @@ class ContentView(View):
 		html = '<li class="content media"><div class="media-left">'+'</div><div class="media-body">' 
 		content = link.get_content()
 		if content:
-			# Not a link
+			# Exists on this computer
 			html += file_to_html(content.file_path)
 
 			html += '<ul class="children media-list">'
 			
 			for child in link.children.iterator():
-				print child
 				html += self.render_html(child)
 			html += '</ul>'
 		else:
 			html += '<ul class="link media-list">'
-			# It is a link
-			print self.limit
+			# Exists on another computer
+			
 			if self.limit > 0:
 				self.limit -= 1
 
 				html += self.content_from_friend(link)
 			else:
 				# Print the link for following
-				href = 'http://{0}:{1}/content/{2}'.format(content['friend']['address'], str(content['friend']['port']), str(content['content']))
+				href = 'http://{0}:{1}/content/{2}'.format(link.friend.address, link.friend.port, link.content)
 
-				html += '<a href="' + href + '">Link to ' + content['friend']['name'] + '/' + str(content['content']) + '</a>'
+				html += '<a href="' + href + '">Link to ' + link.friend.name + '/' + str(link.content) + '</a>'
 			html += '</ul>'
 
 		html += '</div></li>'
