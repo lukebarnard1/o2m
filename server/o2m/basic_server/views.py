@@ -141,7 +141,29 @@ class ContentView(View):
 	def render_json(self, content):
 		return json.dumps(content)
 
-	def render_html(self, content, level = 1, render_links = True):
+	def content_from_friend(self, content):
+		html = ''
+		print 'Trying to get content from {0} with password {1} and ip {2}'.format(content['friend']['name'],content['friend']['password'],content['friend']['address'])
+		friend = content['friend']
+		source_address = '/content/{0}.json'.format(content['content'])
+		con = httplib.HTTPConnection(friend['address'], friend['port'])
+		try:
+			con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password': friend['password']}))
+			resp = con.getresponse()
+
+			js = resp.read()
+			try:
+				loaded_content = json.loads(js)
+				html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(self.render_html(loaded_content), friend['name'])
+			except Exception as e:
+
+				html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
+				if resp.status == 500: html += 'Response text: ' + js
+		finally:
+			con.close()
+		return html
+
+	def render_html(self, content):
 		html = '<li class="content media"><div class="media-left">'+'</div><div class="media-body">' 
 
 		if 'children' in content.keys():
@@ -150,33 +172,16 @@ class ContentView(View):
 
 			html += '<ul class="children media-list">'
 			for child in content['children']:
-				html += self.render_html(child, level + 1, render_links = render_links)
+				html += self.render_html(child)
 			html += '</ul>'
 		else:
 			html += '<ul class="link media-list">'
 			# It is a link
 			print self.limit
-			if render_links and self.limit > 0:
+			if self.limit > 0:
 				self.limit -= 1
-				# Fetch the link
-				friend = content['friend']
 
-				source_address = '/content/{0}.json'.format(content['content'])
-				con = httplib.HTTPConnection(friend['address'], friend['port'])
-				try:
-					con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password':'o27845ylrjsrt4i7yt7'}))
-					resp = con.getresponse()
-
-					js = resp.read()
-					try:
-						loaded_content = json.loads(js)
-						html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(self.render_html(loaded_content, level + 1, render_links), friend['name'])
-					except Exception as e:
-
-						html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
-						if resp.status == 500: html += 'Response text: ' + js
-				finally:
-					con.close()
+				html += self.content_from_friend(content)
 			else:
 				# Print the link for following
 				href = 'http://{0}:{1}/content/{2}'.format(content['friend']['address'], str(content['friend']['port']), str(content['content']))
