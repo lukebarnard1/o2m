@@ -1,5 +1,7 @@
 from django.db import models
 import o2m.settings
+import mptt.models
+from mptt.fields import TreeForeignKey
 
 # Create your models here.
 
@@ -21,7 +23,8 @@ class Content(models.Model):
 	def __str__(self):
 		return "Content at {0}, created {1}".format(self.file_path, self.creation_time)
 
-class Link(models.Model):
+class Link(mptt.models.MPTTModel):
+	parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
 	friend = models.ForeignKey(Friend) # (Could be yourself)
 	content = models.BigIntegerField() # (Could be your own)
 
@@ -43,10 +46,3 @@ class Link(models.Model):
 			content_text = 'The file is on another friend\'s computer'
 
 		return "Link {0}: Content {1}".format(self.friend.name, content_text)
-
-class LinkEdge(models.Model):
-	a = models.BigIntegerField() # Link
-	b = models.BigIntegerField() # Next link
-
-	def __str__(self):
-		return "LinkEdge {0} to {1}".format(self.a, self.b)
