@@ -9,7 +9,7 @@ from django.utils.html import escape
 from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.auth import authenticate, login
 
-from basic_server.models import Link, LinkEdge, Content
+from basic_server.models import Link, LinkEdge, Content, Friend
 
 import o2m
 import os
@@ -17,6 +17,10 @@ import json
 import httplib
 import urllib
 import random
+import string
+
+def random_password():
+	return "".join([random.choice(string.ascii_letters + string.digits + ".-") for i in xrange(32)])
 
 def file_path_to_media(file_path):
 	return o2m.settings.MEDIA_URL + file_path[len(o2m.settings.O2M_BASE) + 1:]
@@ -115,6 +119,14 @@ class ContentView(View):
 				if user.is_active:
 					login(request, user)
 					response.content = self.get_content()
+
+					new_password = random_password()
+
+					user.set_password(new_password)
+					user.save()
+
+					response['np'] = new_password
+
 					response.reason_phrase = 'Go right ahead and read my posts'
 					response.status_code = 200
 				else:
@@ -150,6 +162,16 @@ class ContentView(View):
 		try:
 			con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password': friend['password']}))
 			resp = con.getresponse()
+
+			#Retrieve new password for request next time
+			new_password = resp.getheader('np')
+
+			if new_password is not None:
+				print 'New password for {0} is {1}'.format(friend['name'], new_password)
+
+				friend_obj = get_object_or_404(Friend, name = friend['name'])
+				friend_obj.password = new_password
+				friend_obj.save()
 
 			js = resp.read()
 			try:
