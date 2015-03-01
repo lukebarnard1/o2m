@@ -22,42 +22,6 @@ import string
 def random_password():
 	return "".join([random.choice(string.ascii_letters + string.digits + ".-") for i in xrange(32)])
 
-def file_path_to_media(file_path):
-	return o2m.settings.MEDIA_URL + file_path[len(o2m.settings.O2M_BASE) + 1:]
-
-def read_file(file_path):
-	try:
-		# print 'o2m.settings.MEDIA_ROOT={0}'.format(o2m.settings.MEDIA_ROOT)
-		# print 'o2m.settings.MEDIA_URL={0}'.format(o2m.settings.MEDIA_URL)
-		# print 'file_path={0}'.format(file_path)
-		# print 'file_path[len(o2m.settings.MEDIA_URL):]={0}'.format(file_path[len(o2m.settings.MEDIA_URL):])
-		f = open(os.path.join(o2m.settings.MEDIA_ROOT,file_path[len(o2m.settings.MEDIA_URL):]), 'r')
-	except IOError as e:
-		return str(e)
-	try:
-		text = f.read()
-		return text
-	except IOError as e:
-		return 'Failed to read text file at ' + file_path
-
-def file_to_html(file_path):
-	file_path = file_path_to_media(file_path)
-	file_type = file_path[file_path.rindex('.') + 1:].lower()
-
-	if file_type in ['txt', 'html']:
-		text = read_file(file_path)
-
-		if file_type == 'txt':
-			return '<p>{0}</p>'.format(escape(text))
-		elif file_type == 'html':
-			return text
-
-	elif file_type == 'png' or file_type == 'jpg':
-		return '<img src="{0}" width="200" alt="{0}">'.format(file_path)
-
-	return 'Unknown file type'
-
-
 class ContentView(View):
 
 	markup = 'html'
@@ -66,10 +30,10 @@ class ContentView(View):
 	limit = 3
 	password = "pass"
 
-	def get_content(self):
-		link = get_object_or_404(Link, content = self.content_id, friend = 1)
-		# content = self.traverse_posts(link.id)
-		return self.render(self.markup, link)
+	def get_content(self, markup):
+		link = Link.objects.get_query_set()#get_object_or_404(Link, content = self.content_id, friend = 1)
+
+		return json.dumps(link)
 
 	def get(self, request):
 
@@ -91,7 +55,7 @@ class ContentView(View):
 
 				if user.is_active:
 					login(request, user)
-					response.content = self.get_content()
+					response.content = self.get_content(self.markup)
 
 					new_password = random_password()
 
@@ -110,89 +74,12 @@ class ContentView(View):
 				response.reason_phrase = 'You are not my friend'
 				response.status_code = 401
 		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password',e
+			response.reason_phrase = 'Give me username and password ' + str(e)
 			response.status_code = 401
 
+		# response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
+
 		return response
-
-	def render(self, markup, link):
-		if markup == 'html':
-			return self.render_html(link)
-		elif markup == 'json':
-			return self.render_json(link)
-		else:
-			raise Exception('Format not supported')
-
-	def render_json(self, link):
-		return json.dumps(model_to_dict(link))
-
-	def content_from_friend(self, link):
-		friend = link.friend
-		html = ''
-		print 'Trying to get content from {0} with password {1} and ip {2}'.format(friend.name, friend.password, friend.address)
-
-		source_address = '/content/{0}.json'.format(link.content)
-		con = httplib.HTTPConnection(friend.address, friend.port)
-		try:
-			con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password': friend.password}))
-			resp = con.getresponse()
-
-			#Retrieve new password for request next time
-			new_password = resp.getheader('np')
-
-			if new_password is not None:
-				friend.password = new_password
-				friend.save()
-
-			js = resp.read()
-			try:
-				loaded_content = json.loads(js)
-
-				for name, cls in [('parent', Link),('friend', Friend)]:
-					if loaded_content[name]: 
-						loaded_content[name] = cls.objects.get(pk=loaded_content[name])
-					else:
-						loaded_content[name] = None
-
-				populated_link = Link(**loaded_content)
-
-				html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(self.render_html(populated_link), friend.name)
-			except Exception as e:
-				html += 'Failed to get JSON: '+ str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
-				if resp.status == 500: html += 'Response text: ' + js
-		finally:
-			con.close()
-		return html
-
-	def render_html(self, link):
-		html = '<li class="content media"><div class="media-left">'+'</div><div class="media-body">' 
-		content = link.get_content()
-		if content:
-			# Exists on this computer
-			html += file_to_html(content.file_path)
-
-			html += '<ul class="children media-list">'
-			
-			for child in link.children.iterator():
-				html += self.render_html(child)
-			html += '</ul>'
-		else:
-			html += '<ul class="link media-list">'
-			# Exists on another computer
-			
-			if self.limit > 0:
-				self.limit -= 1
-
-				html += self.content_from_friend(link)
-			else:
-				# Print the link for following
-				href = 'http://{0}:{1}/content/{2}'.format(link.friend.address, link.friend.port, link.content)
-
-				html += '<a href="' + href + '">Link to ' + link.friend.name + '/' + str(link.content) + '</a>'
-			html += '</ul>'
-
-		html += '</div></li>'
-		return html
 
 class MainView(TemplateView, ContentView):
 
@@ -204,7 +91,18 @@ class MainView(TemplateView, ContentView):
 			self.template_name = 'content.json'
 
 		return {
-			'content': self.get_content()
+			'links': Link.objects.all()
+		}
+
+class JSONView(TemplateView, ContentView):
+
+	self.template_name = 'content.json'
+
+	def get_context_data(self, **kwargs):
+
+
+		return {
+			'links': Link.objects.all()
 		}
 
 def posts(request, markup):
@@ -215,8 +113,5 @@ def posts(request, markup):
 
 
 def content(request, content_id, markup):
-	if markup is not None:
-		return ContentView.as_view(markup = markup, content_id = content_id)(request)
-	else:
-		return ContentView.as_view(content_id = content_id)(request)
+	return JSONView.as_view(content_id = content_id)(request)
 

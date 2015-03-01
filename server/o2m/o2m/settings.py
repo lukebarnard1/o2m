@@ -48,6 +48,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'basic_server',
+    'mptt',
+    'django_mptt_admin',
 )
 
 MIDDLEWARE_CLASSES = (

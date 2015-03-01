@@ -1,7 +1,22 @@
 {% extends "base.html" %}
 
+{% load mptt_tags %}
+
 {% block body %}
-<ul class="media-list">
-	{{content | safe}}
-</ul>
+	<ul class="media-list">
+	{% recursetree links %}
+		<li class="content media"><div class="media-left"></div><div class="media-body">
+			{{node.get_content.get_html_representation | safe}}
+			{% if not node.get_content %}
+				{{node.get_content_from_friend | safe}}
+			{% endif %}
+			{% if not node.is_leaf_node %}
+				<ul class="children">
+					{{children}}
+				</ul>
+			{% endif %}
+			</div>
+		</li>
+	{% endrecursetree %}
+	</ul>
 {% endblock %}

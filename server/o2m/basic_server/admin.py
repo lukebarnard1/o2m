@@ -4,4 +4,11 @@ from basic_server.models import Friend, Content, Link
 
 admin.site.register(Friend)
 admin.site.register(Content)
-admin.site.register(Link)
+# admin.site.register(Link)
+
+from django_mptt_admin.admin import DjangoMpttAdmin
+
+class LinkAdmin(DjangoMpttAdmin):
+	pass
+
+admin.site.register(Link, LinkAdmin)
