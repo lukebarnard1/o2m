@@ -112,7 +112,7 @@ class Link(mptt.models.MPTTModel):
 
 				html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(populated_link.content.get_html_representation(), friend.name)
 			except Exception as e:
-				html += 'Failed to get JSON: '+ friend.name + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
+				html += 'Failed to get JSON (from '+ friend.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
 				html += 'Response text: ' + js
 		finally:
 			con.close()

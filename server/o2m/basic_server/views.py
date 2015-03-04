@@ -96,10 +96,10 @@ class MainView(TemplateView, ContentView):
 
 class JSONView(TemplateView, ContentView):
 
-	self.template_name = 'content.json'
+	template_name = 'content.json'
 
 	def get_context_data(self, **kwargs):
-
+		# raw_input('JSONView.get_context_data')
 
 		return {
 			'links': Link.objects.all()
