@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms.models import model_to_dict
 import o2m.settings
 import mptt.models
 from mptt.fields import TreeForeignKey
@@ -68,6 +69,14 @@ class Link(mptt.models.MPTTModel):
 	friend = models.ForeignKey(Friend) # (Could be yourself)
 	content = models.BigIntegerField() # (Could be your own)
 
+	def to_json(self):
+
+		json_self = {}
+		json_self['friend'] = model_to_dict(self.friend)
+		json_self['content'] = self.content
+
+		return json.dumps(json_self)
+
 	def get_content(self):
 		"""Returns None if the content is on a friend's computer.
 
@@ -95,25 +104,25 @@ class Link(mptt.models.MPTTModel):
 				friend.password = new_password
 				friend.save()
 
-			js = resp.read()
+			content = resp.read()
 
-			try:
-				loaded_content = json.loads(js)
+			# try:
+			# 	loaded_content = json.loads(js)
 
-				for name, cls in [('parent', Link),('friend', Friend),('content', Content)]:
-					if loaded_content[name]: 
-						loaded_content[name] = cls.objects.get(pk=loaded_content[name])
-					else:
-						loaded_content[name] = None
+			# 	for name, cls in [('content', Content)]:
+			# 		if loaded_content[name]: 
+			# 			loaded_content[name] = cls.objects.get(pk=loaded_content[name])
+			# 		else:
+			# 			loaded_content[name] = None
 
-				print loaded_content
+			# 	print loaded_content
 
-				populated_link = Link(**loaded_content)
+			# 	populated_link = Link(**loaded_content)
 
-				html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(populated_link.content.get_html_representation(), friend.name)
-			except Exception as e:
-				html += 'Failed to get JSON (from '+ friend.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
-				html += 'Response text: ' + js
+			html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(content, friend.name)
+			# except Exception as e:
+			# 	html += 'Failed to get JSON (from '+ friend.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
+			# 	html += 'Response text: ' + js
 		finally:
 			con.close()
 		return html

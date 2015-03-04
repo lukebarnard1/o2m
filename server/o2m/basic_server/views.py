@@ -94,15 +94,15 @@ class MainView(TemplateView, ContentView):
 			'links': Link.objects.all()
 		}
 
-class JSONView(TemplateView, ContentView):
+class JSONContentView(TemplateView, ContentView):
 
 	template_name = 'content.json'
 
 	def get_context_data(self, **kwargs):
-		# raw_input('JSONView.get_context_data')
-
+		content = Content.objects.get(pk=self.content_id)
+		
 		return {
-			'links': Link.objects.all()
+			'content': content.get_html_representation()
 		}
 
 def posts(request, markup):
@@ -113,5 +113,5 @@ def posts(request, markup):
 
 
 def content(request, content_id, markup):
-	return JSONView.as_view(content_id = content_id)(request)
+	return JSONContentView.as_view(content_id = content_id)(request)
 

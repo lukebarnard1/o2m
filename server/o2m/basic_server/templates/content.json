@@ -1,14 +1,1 @@
-{% load mptt_tags %}
-[{% recursetree links %}
-	{
-		"content": "{{node.content}}",
-		"friend" : {
-			"name": "{{node.friend.name}}",
-			"address": "{{node.friend.address}}",
-			"port": "{{node.friend.port}}"
-		}
-		{% if not node.is_leaf_node %}
-			,"children": [{{children}}]
-		{% endif %}
-	},
-{% endrecursetree %}]
+{{content | safe}}
