@@ -24,11 +24,8 @@ def random_password():
 
 class ContentView(View):
 
-	markup = 'html'
 	content_id = 1
-	id = random.randint(0, 20)
 	limit = 3
-	password = "pass"
 
 	def get_content(self, markup):
 		link = Link.objects.get_query_set()#get_object_or_404(Link, content = self.content_id, friend = 1)
@@ -50,12 +47,10 @@ class ContentView(View):
 			user = authenticate(username=username, password=password)
 			print 'User...',user
 			if user is not None:
-				if username != 'Luke Barnard':
-					self.markup = 'json'
 
 				if user.is_active:
 					login(request, user)
-					response.content = self.get_content(self.markup)
+					response.content = self.get_content()
 
 					new_password = random_password()
 
@@ -71,7 +66,7 @@ class ContentView(View):
 					response.status_code = 401
 
 			else:
-				response.reason_phrase = 'You are not my friend'
+				response.reason_phrase = 'You are not my friend or that password was wrong'
 				response.status_code = 401
 		except MultiValueDictKeyError as e:
 			response.reason_phrase = 'Give me username and password ' + str(e)
@@ -90,17 +85,6 @@ class MainView(TemplateView, ContentView):
 			'links': Link.objects.all()
 		}
 
-class JSONContentView(TemplateView, ContentView):
-
-	template_name = 'content.json'
-
-	def get_context_data(self, **kwargs):
-		content = Content.objects.get(pk=self.content_id)
-		
-		return {
-			'content': content.get_html_representation()
-		}
-
 def dict_for_node(node):
 	result = model_to_dict(node)
 
@@ -116,12 +100,16 @@ def dict_for_node(node):
 def json_for_node(node):
 	return json.dumps(dict_for_node(node), indent=4)
 
-def posts(request):
-	json = json_for_node(Link.objects.filter()[0])
 
-	return HttpResponse(json)
+class JSONView(ContentView):
+
+	def get_content(self):
+		return json_for_node(Link.objects.filter()[0])
+
+def posts(request):
+	return JSONView.as_view(content_id = 1)(request)
 
 
 def content(request, content_id, markup):
-	return JSONContentView.as_view(content_id = content_id)(request)
+	return JSONView.as_view(content_id = content_id)(request)
 
