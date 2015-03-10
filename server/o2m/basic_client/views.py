@@ -23,10 +23,16 @@ def get_from_friend(source_address, me):
 
 def render_links(tree, me):
 	html = '<li>'
-	html += get_from_friend('/content/{2}'.format(
-								tree['friend']['address'],
-								tree['friend']['port'],
-								tree['content']), me).read()
+	content_link = '/content/{2}'.format(tree['friend']['address'], tree['friend']['port'], tree['content']) 
+	resp = get_from_friend(content_link, me)
+
+	content_type = resp.getheader('Content-Type')
+
+	if content_type == 'html':
+		html += resp.read()
+	elif content_type == 'jpg':
+		html += '<img src="{0}" width="100">'.format(content_link)
+
 	html += '<ul>'
 	for child in tree['children']:
 		html += render_links(child, me)

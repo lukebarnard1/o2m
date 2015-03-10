@@ -44,6 +44,14 @@ class Content(models.Model):
 	creation_time = models.DateTimeField()
 	integer = models.IntegerField() # Non-descript to allow variations
 
+	def get_http_body_raw(self):
+		file_path = file_path_to_media(self.file_path)
+		file_type = file_path[file_path.rindex('.') + 1:].lower()
+
+		data = read_file(file_path)
+
+		return data,file_type
+
 	def get_html_representation(self):
 		file_path = file_path_to_media(self.file_path)
 		file_type = file_path[file_path.rindex('.') + 1:].lower()

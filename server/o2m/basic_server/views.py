@@ -115,5 +115,10 @@ def posts(request):
 
 
 def content(request, content_id, markup):
-	return HttpResponse(Content.objects.get(pk=content_id).file_path)
+
+	data, content_type = Content.objects.get(pk=content_id).get_http_body_raw()
+
+	resp = HttpResponse(content=data, content_type=content_type)
+
+	return resp
 
