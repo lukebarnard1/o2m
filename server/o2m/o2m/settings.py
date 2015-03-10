@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'basic_server',
+    'basic_client',
     'mptt',
     'django_mptt_admin',
 )

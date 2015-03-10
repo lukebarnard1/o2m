@@ -69,10 +69,10 @@ class ContentView(View):
 				response.reason_phrase = 'You are not my friend or that password was wrong'
 				response.status_code = 401
 		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password ' + str(e)
+			response.reason_phrase = 'Give me username and password'
 			response.status_code = 401
 
-		# response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
+		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
 
 		return response
 
@@ -104,12 +104,16 @@ def json_for_node(node):
 class JSONView(ContentView):
 
 	def get_content(self):
-		return json_for_node(Link.objects.filter()[0])
+
+		if self.content_id == 1:
+			return json_for_node(Link.objects.filter()[0])
+		else:
+			return json_for_node(Link.objects.get(content=self.content_id))
 
 def posts(request):
 	return JSONView.as_view(content_id = 1)(request)
 
 
 def content(request, content_id, markup):
-	return JSONView.as_view(content_id = content_id)(request)
+	return HttpResponse(Content.objects.get(pk=content_id).file_path)
 

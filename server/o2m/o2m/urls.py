@@ -18,4 +18,7 @@ urlpatterns = patterns('',
 	    'document_root': settings.EXTRA_ROOT,
 	}),
     url(r'^admin/', include(admin.site.urls)),
+
+
+    url(r'^home$', 'basic_client.views.home')
 )
