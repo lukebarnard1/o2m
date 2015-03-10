@@ -144,7 +144,7 @@ Data Dictionary
  -----|--------------
  Tree | There is one of these stored on each user’s computer. It is a structure that begins with a root Node and each Node belongs to a parent except the root.
  Node | One node has a Friend that created it (this could be the owner of the tree) and an identifier to identify the Content on the Friend’s machine. A node also has a creation time.
- Content | This can be downloaded at a URL once a unique identifier is known. At the URL can be any data and when downloaded, it will come with a MIME type, which will allow it to be rendered accordingly.
+ Content | This can be downloaded at a URL once a unique identifier is known. At the URL can be any data and when downloaded, it will come with a Content-Type header, which will allow it to be rendered accordingly.
  Friend | Each Friend object contains an IP address, port number and a name. This is just a minimum. If authentication is required, perhaps a password for accessing this Friend’s server is also needed.
 
 Protocol
