@@ -6,7 +6,7 @@ import settings
 urlpatterns = patterns('',
     
     # Front end
-    url(r'^posts(\.(?P<markup>.*))?$', 'basic_server.views.posts'),
+    url(r'^posts$', 'basic_server.views.posts'),
 
     # Back end
     url(r'^content/(?P<content_id>[0-9]*)(\.(?P<markup>(html|json)))?$', 'basic_server.views.content'),

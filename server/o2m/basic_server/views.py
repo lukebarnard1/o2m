@@ -84,11 +84,7 @@ class ContentView(View):
 class MainView(TemplateView, ContentView):
 
 	def get_context_data(self, **kwargs):
-
-		if self.markup == 'html':
-			self.template_name = 'content.html'
-		elif self.markup == 'json':
-			self.template_name = 'content.json'
+		self.template_name = 'content.json'
 
 		return {
 			'links': Link.objects.all()
@@ -105,11 +101,25 @@ class JSONContentView(TemplateView, ContentView):
 			'content': content.get_html_representation()
 		}
 
-def posts(request, markup):
-	if markup:
-		return MainView.as_view(markup = markup, content_id = 1)(request)
-	else:
-		return MainView.as_view(content_id = 1)(request)
+def dict_for_node(node):
+	result = model_to_dict(node)
+
+	result['friend'] = model_to_dict(Friend.objects.get(pk=result['friend']))
+	
+	del result['friend']['password']
+	del result['parent']
+
+	result['children'] = [dict_for_node(child) for child in node.get_children()]
+
+	return result
+
+def json_for_node(node):
+	return json.dumps(dict_for_node(node), indent=4)
+
+def posts(request):
+	json = json_for_node(Link.objects.filter()[0])
+
+	return HttpResponse(json)
 
 
 def content(request, content_id, markup):
