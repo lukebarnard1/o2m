@@ -22,7 +22,7 @@ import string
 def random_password():
 	return "".join([random.choice(string.ascii_letters + string.digits + ".-") for i in xrange(32)])
 
-class ContentView(View):
+class AuthenticatedView(View):
 
 	content_id = 1
 	limit = 3
@@ -34,23 +34,18 @@ class ContentView(View):
 
 	def get(self, request):
 
-		# Authentication required: is this a friend, me or someone else?
-		#	- If it is me, html is possible and links are therefore followed.
-		#	- If it is not me, only json is possible and links are returned.
-
 		response = HttpResponse()
-		print 'Getting...'
+		print 'Getting usename and password'
 		try:
 			username = request.GET['username']
 			password = request.GET['password']
-			print 'Authenticating...'
+			print 'Authenticating ' + username
 			user = authenticate(username=username, password=password)
-			print 'User...',user
+			print 'User authenticated as ' + username
 			if user is not None:
-
 				if user.is_active:
 					login(request, user)
-					response.content = self.get_content()
+					response = self.get_response(request, user)
 
 					new_password = random_password()
 
@@ -76,15 +71,6 @@ class ContentView(View):
 
 		return response
 
-class MainView(TemplateView, ContentView):
-
-	def get_context_data(self, **kwargs):
-		self.template_name = 'content.json'
-
-		return {
-			'links': Link.objects.all()
-		}
-
 def dict_for_node(node):
 	result = model_to_dict(node)
 
@@ -101,24 +87,26 @@ def json_for_node(node):
 	return json.dumps(dict_for_node(node), indent=4)
 
 
-class JSONView(ContentView):
-
-	def get_content(self):
-
+class JSONView(AuthenticatedView):
+	def get_response(self, request, user):
+		response = HttpResponse()
 		if self.content_id == 1:
-			return json_for_node(Link.objects.filter()[0])
+			response.content = json_for_node(Link.objects.filter()[0])
 		else:
-			return json_for_node(Link.objects.get(content=self.content_id))
+			response.content = json_for_node(Link.objects.get(content=self.content_id))
+		return response
+
+class ContentView(AuthenticatedView):
+	def get_response(self, request, user):
+		resp = Content.objects.get(pk=self.content_id).get_http_response()
+		return resp
 
 def posts(request):
 	return JSONView.as_view(content_id = 1)(request)
 
 
-def content(request, content_id, markup):
-
-	data, content_type = Content.objects.get(pk=content_id).get_http_body_raw()
-
-	resp = HttpResponse(content=data, content_type=content_type)
-
-	return resp
+def content(request, content_id):
+	"""Serves content as a file, returning it's guessed Content-Type.
+	"""
+	return ContentView.as_view(content_id = content_id)(request)
 

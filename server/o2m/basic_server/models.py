@@ -6,7 +6,9 @@ from mptt.fields import TreeForeignKey
 import os
 import httplib
 import urllib
-import json
+import json,mimetypes
+from django.http import HttpResponse
+from django.core.servers.basehttp import FileWrapper
 
 # Create your models here.
 
@@ -44,13 +46,10 @@ class Content(models.Model):
 	creation_time = models.DateTimeField()
 	integer = models.IntegerField() # Non-descript to allow variations
 
-	def get_http_body_raw(self):
-		file_path = file_path_to_media(self.file_path)
-		file_type = file_path[file_path.rindex('.') + 1:].lower()
-
-		data = read_file(file_path)
-
-		return data,file_type
+	def get_http_response(self):
+		"""Returns a HttpResponse that will return the file of this content.
+		"""
+		return HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
 
 	def get_html_representation(self):
 		file_path = file_path_to_media(self.file_path)
