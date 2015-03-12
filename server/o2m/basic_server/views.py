@@ -27,11 +27,6 @@ class AuthenticatedView(View):
 	content_id = 1
 	limit = 3
 
-	def get_content(self, markup):
-		link = Link.objects.get_query_set()#get_object_or_404(Link, content = self.content_id, friend = 1)
-
-		return json.dumps(link)
-
 	def get(self, request):
 
 		response = HttpResponse()
@@ -73,6 +68,7 @@ class AuthenticatedView(View):
 
 def dict_for_node(node):
 	result = model_to_dict(node)
+	result['creation_time'] = node.creation_time.__str__()
 
 	result['friend'] = model_to_dict(Friend.objects.get(pk=result['friend']))
 	
@@ -88,25 +84,55 @@ def json_for_node(node):
 
 
 class JSONView(AuthenticatedView):
+
+	def get_node_for_json(self):
+		return Link.objects.filter()[0]
+	
 	def get_response(self, request, user):
 		response = HttpResponse()
-		if self.content_id == 1:
-			response.content = json_for_node(Link.objects.filter()[0])
-		else:
-			response.content = json_for_node(Link.objects.get(content=self.content_id))
+		
+		response.content = json_for_node(self.get_node_for_json())
+		
 		return response
+
+class PostsView(JSONView):
+	def get_node_for_json(self):
+		if self.content_id == 1:
+			return Link.objects.filter()[0]
+		else:
+			return Link.objects.get(content=self.content_id)
 
 class ContentView(AuthenticatedView):
 	def get_response(self, request, user):
 		resp = Content.objects.get(pk=self.content_id).get_http_response()
 		return resp
 
-def posts(request):
-	return JSONView.as_view(content_id = 1)(request)
+class TimelineView(PostsView):
+	def get_response(self, request, user):
+		response = HttpResponse()
 
+		node = self.get_node_for_json()
+		
+		timeline = node.get_children().order_by('-creation_time')
+		
+		timeline_dicts = []
+
+		for child in timeline:
+			timeline_dicts.append(dict_for_node(child))
+			
+		response.content = json.dumps(timeline_dicts)
+		
+		return response
+
+
+def posts(request):
+	return PostsView.as_view(content_id = 1)(request)
 
 def content(request, content_id):
 	"""Serves content as a file, returning it's guessed Content-Type.
 	"""
 	return ContentView.as_view(content_id = content_id)(request)
+
+def timeline(request):
+	return TimelineView.as_view(content_id = 1)(request)
 

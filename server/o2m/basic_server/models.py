@@ -7,6 +7,7 @@ import os
 import httplib
 import urllib
 import json,mimetypes
+from datetime import datetime
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
@@ -43,7 +44,6 @@ class Friend(models.Model):
 
 class Content(models.Model):
 	file_path = models.FilePathField(path=o2m.settings.O2M_BASE, recursive=True)
-	creation_time = models.DateTimeField()
 	integer = models.IntegerField() # Non-descript to allow variations
 
 	def get_http_response(self):
@@ -74,6 +74,7 @@ class Content(models.Model):
 class Link(mptt.models.MPTTModel):
 	parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
 	friend = models.ForeignKey(Friend) # (Could be yourself)
+	creation_time = models.DateTimeField(default=datetime.now, auto_now_add=True)
 	content = models.BigIntegerField() # (Could be your own)
 
 	def to_json(self):

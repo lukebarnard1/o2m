@@ -6,7 +6,8 @@ import settings
 urlpatterns = patterns('',
     
     # Front end
-    url(r'^posts$', 'basic_server.views.posts'),
+    url(r'^o2m/home$', 'basic_client.views.home'), #Displays your own content tree
+    url(r'^o2m/timeline$', 'basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
 
     # Back end
     url(r'^content/(?P<content_id>[0-9]*)$', 'basic_server.views.content'),
@@ -19,6 +20,7 @@ urlpatterns = patterns('',
 	}),
     url(r'^admin/', include(admin.site.urls)),
 
+    url(r'^posts$', 'basic_server.views.posts'),
+    url(r'^timeline$', 'basic_server.views.timeline'),
 
-    url(r'^home$', 'basic_client.views.home')
 )

@@ -8,9 +8,9 @@ import json
 def get_authenticated_link(source_address, me):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': me.password})
 
-def get_from_friend(source_address, me):
+def get_from_friend(source_address, friend , me):
 	try:
-		con = httplib.HTTPConnection(me.address, me.port)
+		con = httplib.HTTPConnection(friend.address, friend.port)
 		con.request('GET', get_authenticated_link(source_address, me))
 		resp = con.getresponse()
 
@@ -25,11 +25,11 @@ def get_from_friend(source_address, me):
 		con.close()
 	return resp
 
-def render_links(tree, me):
+def render_links(tree, friend, me):
 	html = '<li>'
 	content_link = '/content/{2}'.format(tree['friend']['address'], tree['friend']['port'], tree['content']) 
 	try:
-		resp = get_from_friend(content_link, me)
+		resp = get_from_friend(content_link, friend, me)
 	except:
 		print "Something went wrong..."
 
@@ -47,7 +47,7 @@ def render_links(tree, me):
 
 	html += '<ul>'
 	for child in tree['children']:
-		html += render_links(child, me)
+		html += render_links(child, friend, me)
 	html += '</ul>'
 	html += '</li>'
 	return html
@@ -59,16 +59,47 @@ def home(request):
 	source_address = '/posts'
 	html = ''
 	try:
-		resp = get_from_friend(source_address, me)
+		resp = get_from_friend(source_address, me, me)
 		content = resp.read()
 
 		html += '<h1>Home</h1>'
 
-		html += render_links(json.loads(content), me)
+		html += render_links(json.loads(content), me, me)
 
 	except Exception as e:
 		html += 'Failed to get JSON (from '+ me.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
 		html += 'Response text: ' + content
 
+	return HttpResponse(html)
+
+
+def timeline(request):
+	me = Friend.objects.filter()[0]
+
+	source_address = '/timeline'
+
+	friends = Friend.objects.filter()[1:]
+	html = '<h1>Timeline</h1>'
+
+	timeline = []
+
+	for friend in friends:
+		resp = get_from_friend(source_address, friend, me)
+		if resp.status != 200: 
+			print "Returning..."+str(resp.status)
+			return HttpResponse(resp.read())
+		content = resp.read()
+		timeline.extend(json.loads(content))
+
+	def newest_first(a,b):
+		print a['creation_time']
+		print b['creation_time']
+		return 1
+
+	sorted(timeline, cmp=newest_first)
+	timeline.sort()
+
+	for post in timeline:
+		html += render_links(post, friend, me)
 
 	return HttpResponse(html)
