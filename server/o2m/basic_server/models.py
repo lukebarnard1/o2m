@@ -69,7 +69,7 @@ class Content(models.Model):
 		return 'Unknown file type'
 
 	def __str__(self):
-		return "Content at {0}, created {1}".format(self.file_path, self.creation_time)
+		return "Content at {0}".format(self.file_path)
 
 class Link(mptt.models.MPTTModel):
 	parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
