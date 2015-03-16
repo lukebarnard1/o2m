@@ -5,28 +5,27 @@ from basic_server.models import Link, Content, Friend
 import httplib, urllib
 import json
 
-def get_authenticated_link(source_address, me):
-	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': me.password})
+def get_authenticated_link(source_address, me, friend):
+	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me):
 	try:
 		con = httplib.HTTPConnection(friend.address, friend.port)
-		con.request('GET', get_authenticated_link(source_address, me))
+		con.request('GET', get_authenticated_link(source_address, me, friend))
 		resp = con.getresponse()
 
 		#Retrieve new password for request next time
 		new_password = resp.getheader('np')
 
 		if new_password is not None:
-			me.password = new_password
-			me.save()
-		print "Getting {0} has given the new password {1}".format(source_address, me.password)
+			friend.password = new_password
+			friend.save()
+		print "Getting {0} has given the new password {1}".format(source_address, friend.password)
 	finally:
 		con.close()
 	return resp
 
 def render_links(tree, friend, me):
-	html = '<li>'
 	content_link = '/content/{2}'.format(tree['friend']['address'], tree['friend']['port'], tree['content']) 
 	try:
 		resp = get_from_friend(content_link, friend, me)
@@ -34,16 +33,17 @@ def render_links(tree, friend, me):
 		print "Something went wrong..."
 
 	content_type = resp.getheader('Content-Type')
-
+	html = '<li>'
+	html += '<ul><li>' + friend.name + '</li>'
 	if content_type == 'text/html':
-		html += resp.read()
+		html += '<li>' + resp.read() + '</li></ul>'
 	elif content_type.startswith('image'):
 		"""
 		TODO: Fix with caching the image
 
 
 		"""
-		html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me))
+		html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
 
 	html += '<ul>'
 	for child in tree['children']:
@@ -78,18 +78,19 @@ def timeline(request):
 
 	source_address = '/timeline'
 
-	friends = Friend.objects.filter()[1:]
+	friends = Friend.objects.filter()#[1:]
 	html = '<h1>Timeline</h1>'
 
 	timeline = []
 
 	for friend in friends:
 		resp = get_from_friend(source_address, friend, me)
-		if resp.status != 200: 
-			print "Returning..."+str(resp.status)
-			return HttpResponse(resp.read())
-		content = resp.read()
-		timeline.extend(json.loads(content))
+		print "Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
+		if resp.status == 200: 
+			content = resp.read()
+			timeline.extend(json.loads(content))
+		else:
+			pass# return HttpResponse(resp.read())
 
 	def newest_first(a,b):
 		print a['creation_time']
