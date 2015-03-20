@@ -191,7 +191,7 @@ def add_content(request):
 	"""Adds content to this server whilst also sending a new link to the friend
 	specified in the POST variables
 	"""
-	print '(Client)'+request.POST
+	print '(Client)',request.POST
 	friend_address = request.POST['friend_address']
 	friend_port = request.POST['friend_port']
 	content_text = request.POST['content_text']

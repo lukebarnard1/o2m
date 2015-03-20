@@ -157,8 +157,8 @@ class TimelineView(PostsView):
 		
 		timeline_dicts = [dict_for_node(node)]
 
-		for child in timeline:
-			timeline_dicts.append(dict_for_node(child))
+		# for child in timeline:
+		# 	timeline_dicts.append(dict_for_node(child))
 			
 		response.content = json.dumps(timeline_dicts)
 
