@@ -44,7 +44,7 @@ class Friend(models.Model):
 
 class Content(models.Model):
 	file_path = models.FilePathField(path=o2m.settings.O2M_BASE, recursive=True)
-	integer = models.IntegerField() # Non-descript to allow variations
+	integer = models.IntegerField(default=0) # Non-descript to allow variations
 
 	def get_http_response(self):
 		"""Returns a HttpResponse that will return the file of this content.
@@ -69,7 +69,7 @@ class Content(models.Model):
 		return 'Unknown file type'
 
 	def __str__(self):
-		return "Content at {0}".format(self.file_path)
+		return "Content[{1}] at {0}".format(self.file_path, self.id)
 
 class Link(mptt.models.MPTTModel):
 	parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
@@ -139,7 +139,10 @@ class Link(mptt.models.MPTTModel):
 		content_text = ''
 
 		if self.friend.id == 1: # This is me
-			content_text = Content.objects.get(pk=self.content).file_path
+			try:
+				content_text = Content.objects.get(pk=self.content).file_path
+			except Exception as e:
+				content_text = 'Content could not be found'
 		else:
 			content_text = 'The file is on another friend\'s computer'
 

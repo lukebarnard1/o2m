@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block body %}
+<div class="container">
+	<ul class="media-list">
+	{% for link in links %}
+		<li class="content media">
+			{% for level in link.level %}<div class="media-left"></div>{% endfor %}
+			<div class="media-body">
+				{{link.html | safe}}
+				<form action="http://localhost:8000/o2m/add_content" method="POST">
+					{% csrf_token %}
+					{% bootstrap_form comment_form %}
+					<input type="hidden" value="{{link.content}}" name="content_id">
+					<input type="hidden" value="{{link.friend.address}}" name="friend_address">
+					<input type="hidden" value="{{link.friend.port}}" name="friend_port">
+				</form>
+			</div>
+		</li>
+	{% endfor %}
+	</ul>
+</div>
+{% endblock %}

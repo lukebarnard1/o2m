@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('basic_server', '0009_auto_20150312_2113'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='content',
+            name='file_path',
+            field=models.FilePathField(path=b'/Users/lukebarnard/Documents/Development/PersonalProjects/o2m/development_1/server/o2m/social', recursive=True),
+            preserve_default=True,
+        ),
+        migrations.AlterField(
+            model_name='content',
+            name='integer',
+            field=models.IntegerField(default=0),
+            preserve_default=True,
+        ),
+    ]
