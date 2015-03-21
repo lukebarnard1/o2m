@@ -122,13 +122,17 @@ class TimelineView(TemplateView):
 		timeline = []
 
 		for friend in friends:
-			resp = get_from_friend(source_address, friend, me)
-			print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
-			if resp.status == 200: 
-				content = resp.read()
-				timeline.extend(json.loads(content))
-			else:
-				pass
+			resp = None
+			try:
+				resp = get_from_friend(source_address, friend, me)
+			except Exception as e:
+				print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
+
+			if resp is not None :
+				print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
+				if resp.status == 200: 
+					content = resp.read()
+					timeline.extend(json.loads(content))
 
 		def newest_first(a, b):
 			t1 = dateutil.parser.parse(a['creation_time'])
