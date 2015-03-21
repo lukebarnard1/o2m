@@ -147,7 +147,7 @@ class TimelineView(TemplateView):
 			print "(Client)Level:" ,level
 
 			for link in children:
-				link['level'] = range(level)
+				link['level'] = range(level + 1)
 				flat_children.append(link)
 				if len(link['children']):
 					flat_children.extend(get_children_indented(link['children'], level = level + 1))
