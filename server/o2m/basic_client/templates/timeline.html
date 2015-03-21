@@ -8,6 +8,7 @@
 		<li class="content media">
 			{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 			<div class="media-body">
+				<div class="">{{link.friend.name}}</div>
 				{{link.html | safe}}
 				<form action="http://localhost:8000/o2m/add_content" method="POST">
 					{% csrf_token %}

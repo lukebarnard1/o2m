@@ -19,17 +19,32 @@
 			min-width:50px;
 		}
 	</style>
-	<script>
-		$(document).ready(function(){
-			$(document).on('click', function (e) {
-				if (e.target.tagName == 'IMG') {
-					console.log('edit image');
-				}
-			})
-		});
-	</script>
 </head>
 <body>
+	<div class="container" style="padding-top:20px">
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">o2m</a>
+				</div>
+
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav">
+						<li><a href="/o2m/timeline">Timeline</a></li>
+						<li><a href="/o2m/home">Your Posts</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
 	{% block body %}{% endblock %}
-</body>
+	</body>
 </html>
