@@ -3,6 +3,13 @@
 
 {% block body %}
 <div class="container">
+	<form action="http://localhost:8000/o2m/add_content" method="POST">
+		{% csrf_token %}
+		{% bootstrap_form post_form %}
+		<input type="hidden" value="1" name="content_id">
+		<input type="hidden" value="{{me.address}}" name="friend_address">
+		<input type="hidden" value="{{me.port}}" name="friend_port">
+	</form>
 	<ul class="media-list">
 	{% for link in links %}
 		<li class="content media">

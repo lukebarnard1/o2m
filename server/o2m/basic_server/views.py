@@ -35,10 +35,10 @@ class AuthenticatedView(View):
 
 	def get_authenticated_response(self, request, username, password):
 		response = HttpResponse()
-		print 'Authenticating ' + username
+		print '(Server)Authenticating ' + username
 		user = authenticate(username=username, password=password)
 		if user is not None:
-			print 'User authenticated as ' + username
+			print '(Server)User authenticated as ' + username
 			if user.is_active:
 				login(request, user)
 
@@ -68,7 +68,7 @@ class AuthenticatedView(View):
 
 	def post(self, request): 
 		response = HttpResponse()
-		print 'Getting username and password'
+		print '(Server)Getting username and password'
 		print request.GET
 		try:
 			username = request.GET['username']
@@ -82,14 +82,14 @@ class AuthenticatedView(View):
 
 		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
 
-		print "Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
+		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
 
 		return response
 
 
 	def get(self, request):
 		response = HttpResponse()
-		print 'Getting username and password'
+		print '(Server)Getting username and password'
 		try:
 			username = request.GET['username']
 			password = request.GET['password']
@@ -102,7 +102,7 @@ class AuthenticatedView(View):
 
 		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
 
-		print "Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
+		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
 
 		return response
 
@@ -147,22 +147,18 @@ class ContentView(AuthenticatedView):
 		resp = Content.objects.get(pk=self.content_id).get_http_response()
 		return resp
 
-class TimelineView(PostsView):
+class TimelineView(JSONView):
 	def get_response(self, request, user):
 		response = HttpResponse()
-
-		node = self.get_node_for_json()
 		
-		timeline = node.get_children().order_by('-creation_time')
+		timeline = Link.objects.filter(parent = None).order_by('-creation_time')
 		
-		timeline_dicts = [dict_for_node(node)]
+		timeline_dicts = []
 
-		# for child in timeline:
-		# 	timeline_dicts.append(dict_for_node(child))
+		for post in timeline:
+			timeline_dicts.append(dict_for_node(post))
 			
 		response.content = json.dumps(timeline_dicts)
-
-		print '(Server)' + response.content
 		
 		return response
 
@@ -184,14 +180,17 @@ class AddLink(AuthenticatedView):
 
 		This method currently assumes that the content will be
 		there."""
+		potential_parents = Link.objects.filter(content = self.parent_content_id)
 
-		parent = Link.objects.get(content = self.parent_content_id)
+		if len(potential_parents):
+			parent = potential_parents[0]
+		else:
+			parent = None
 
 		friend = Friend.objects.get(name = user.username)
 		try:
 			content = request.POST['content_id']
 
-			print "Content"*452,content
 		except MultiValueDictKeyError as e:
 			r = HttpResponse()
 			r.status = 501
@@ -202,15 +201,12 @@ class AddLink(AuthenticatedView):
 		link = Link.objects.create(friend = friend, content = content)
 		link.parent = parent
 		link.save()
-		print link
 
 		# try:
 		# 	Link.objects.insert_node(parent, link, save=True)
 		# except Exception as e:
 		# 	print e
 
-
-		print "Link added!"*1000,link
 		return HttpResponse('Link added')
 
 def posts(request):
@@ -228,6 +224,6 @@ def content(request, content_id):
 	return ContentView.as_view(content_id = content_id)(request)
 
 def timeline(request):
-	return TimelineView.as_view(content_id = 1)(request)
+	return TimelineView.as_view()(request)
 
 

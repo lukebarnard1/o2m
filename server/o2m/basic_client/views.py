@@ -8,6 +8,7 @@ from django import forms
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from basic_server.models import Link, Content, Friend
+from django.forms.models import model_to_dict
 from django.shortcuts import redirect
 import o2m
 import random
@@ -109,6 +110,9 @@ class TimelineView(TemplateView):
 
 	class CommentForm(forms.Form):
 	    content_text = forms.CharField(label='Comment', max_length=128)
+	
+	class PostForm(forms.Form):
+	    content_text = forms.CharField(label='Post')
 
 	def get_context_data(self, **kwargs):
 
@@ -144,7 +148,6 @@ class TimelineView(TemplateView):
 
 		def get_children_indented(children, level = 0):
 			flat_children = []
-			print "(Client)Level:" ,level
 
 			for link in children:
 				link['level'] = range(level + 1)
@@ -161,6 +164,8 @@ class TimelineView(TemplateView):
 			link['html'] = link_to_html(link, friend, me)
 
 		return {'links' : links,
+				'me' : model_to_dict(me),
+				'post_form' : self.PostForm(),
 				'comment_form' : self.CommentForm()}
 
 
@@ -208,6 +213,7 @@ def add_content(request):
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return redirect('/o2m/timeline?error=Linking+Error')
+		return HttpResponse(resp.read())
+		#return redirect('/o2m/timeline?error=Linking+Error')
 
 
