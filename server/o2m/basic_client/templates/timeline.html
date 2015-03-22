@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
-
+{% load humanize %}
 {% block body %}
 <div class="container">
 	<form action="/o2m/add_content" method="POST">
@@ -15,7 +15,7 @@
 		<li class="content media">
 			{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 			<div class="media-body panel panel-default">
-				<div class="panel-heading">{{link.friend.name}}@{{link.friend.address}}:{{link.friend.port}} <div class="pull-right">{{link.id}}</div></div>
+				<div class="panel-heading">{{link.friend.name}} posted this {{link.creation_time | naturaltime}}</div>
 				<div class="panel-body">
 					{{link.html | safe}}
 				</div>

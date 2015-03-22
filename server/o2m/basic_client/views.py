@@ -109,11 +109,23 @@ class TimelineView(TemplateView):
 
 		def newest_first(a, b):
 			t1 = dateutil.parser.parse(a['creation_time'])
-			t2 = dateutil.parser.parse(b['creation_time']) 
-
+			t2 = dateutil.parser.parse(b['creation_time'])
 			return int((t2 - t1).total_seconds())
 
-		timeline = sorted(timeline, cmp=newest_first)
+		timeline = sorted(timeline, cmp = newest_first)
+
+		def recurse(lst, func, children_key = 'children'):
+			for item in lst:
+				item = func(item)
+				children = item[children_key]
+				if len(children):
+					recurse(children, func)
+
+		def parse_time(link):
+			link['creation_time'] = dateutil.parser.parse(link['creation_time'])
+			return link
+
+		recurse(timeline, parse_time)
 
 		def get_children_indented(children, level = 0):
 			flat_children = []
