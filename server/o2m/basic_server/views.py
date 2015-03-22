@@ -115,7 +115,7 @@ def dict_for_node(node):
 	del result['friend']['password']
 	del result['parent']
 
-	result['children'] = [dict_for_node(child) for child in node.get_children()]
+	result['children'] = [dict_for_node(child) for child in node.get_children().order_by('-creation_time')]
 
 	return result
 
@@ -181,7 +181,7 @@ class AddLink(AuthenticatedView):
 		This method currently assumes that the content will be
 		there."""
 		potential_parents = Link.objects.filter(content = self.parent_content_id)
-
+		print '(Server)Adding link to first of ',potential_parents
 		if len(potential_parents):
 			parent = potential_parents[0]
 		else:

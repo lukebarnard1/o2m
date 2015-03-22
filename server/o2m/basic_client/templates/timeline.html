@@ -3,7 +3,7 @@
 
 {% block body %}
 <div class="container">
-	<form action="http://localhost:8000/o2m/add_content" method="POST">
+	<form action="/o2m/add_content" method="POST">
 		{% csrf_token %}
 		{% bootstrap_form post_form %}
 		<input type="hidden" value="1" name="content_id">
@@ -15,17 +15,17 @@
 		<li class="content media">
 			{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 			<div class="media-body panel panel-default">
-				<div class="panel-heading">{{link.friend.name}}@{{link.friend.address}}:{{link.friend.port}}</div>
+				<div class="panel-heading">{{link.friend.name}}@{{link.friend.address}}:{{link.friend.port}} <div class="pull-right">{{link.id}}</div></div>
 				<div class="panel-body">
 					{{link.html | safe}}
 				</div>
 				<div class="panel-footer">
-					<form action="http://localhost:8000/o2m/add_content" method="POST">
+					<form action="/o2m/add_content" method="POST">
 						{% csrf_token %}
 						{% bootstrap_form comment_form %}
 						<input type="hidden" value="{{link.content}}" name="content_id">
-						<input type="hidden" value="{{link.friend.address}}" name="friend_address">
-						<input type="hidden" value="{{link.friend.port}}" name="friend_port">
+						<input type="hidden" value="{{link.address}}" name="friend_address">
+						<input type="hidden" value="{{link.port}}" name="friend_port">
 					</form>
 				</div>
 			</div>

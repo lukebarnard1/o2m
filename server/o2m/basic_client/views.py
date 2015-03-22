@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 from basic_server.models import Link, Content, Friend
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect
-import o2m
+import o2m, o2m.settings
 import random
 import string
 
@@ -21,6 +21,7 @@ def get_authenticated_link(source_address, me, friend):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
+	print "(Client)Logging into {0} as {1} to do {2} with {3} with URI {4} ".format(friend, me, method, variables, source_address)
 	try:
 		con = httplib.HTTPConnection(friend.address, friend.port)
 		con.request(method, get_authenticated_link(source_address, me, friend), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
@@ -69,7 +70,7 @@ class TimelineView(TemplateView):
 
 	def get_context_data(self, **kwargs):
 
-		me = Friend.objects.filter()[0]
+		me = Friend.objects.get(name=o2m.settings.ME)
 		print "(Client)Me:",me
 
 		source_address = '/timeline'
@@ -81,6 +82,14 @@ class TimelineView(TemplateView):
 
 		timeline = []
 
+		def assign_links_address(links):
+			for link in links:
+				link['address'] = friend.address
+				link['port'] = friend.port
+				if len(link['children']):
+					assign_links_address(link['children'])
+			return links
+		
 		for friend in friends:
 			resp = None
 			try:
@@ -92,15 +101,19 @@ class TimelineView(TemplateView):
 				print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
 				if resp.status == 200: 
 					content = resp.read()
-					timeline.extend(json.loads(content))
+					links_from_friend = json.loads(content)
+
+					links_from_friend = assign_links_address(links_from_friend)
+
+					timeline.extend(links_from_friend)
 
 		def newest_first(a, b):
 			t1 = dateutil.parser.parse(a['creation_time'])
-			t2 = dateutil.parser.parse(b['creation_time'])
-			return int((t1 - t2).total_seconds())
+			t2 = dateutil.parser.parse(b['creation_time']) 
 
-		sorted(timeline, cmp=newest_first)
-		timeline.sort()
+			return int((t2 - t1).total_seconds())
+
+		timeline = sorted(timeline, cmp=newest_first)
 
 		def get_children_indented(children, level = 0):
 			flat_children = []
@@ -134,7 +147,7 @@ def add_content_link(friend_address, friend_port, content_text, parent_id):
 	"""Adds content 'content_text' to a html file on the local server 
 	and creates a row in the Content model which refers to it. Then
 	the friend is sent a link to this content."""
-	me = Friend.objects.filter()[0]
+	me = Friend.objects.get(name=o2m.settings.ME)
 
 	content_file_name = o2m.settings.O2M_BASE + '/' + random_content_name() + '.html'
 
