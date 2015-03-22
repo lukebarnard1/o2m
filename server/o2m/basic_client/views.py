@@ -55,58 +55,11 @@ def link_to_html(link, friend, me):
 		# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
 		return '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
 
-def render_links(tree, friend, me):
-	content_link = '/content/{0}'.format(tree['content']) 
-	try:
-		resp = get_from_friend(content_link, friend, me)
-	except:
-		print "Something went wrong..."
-
-	content_type = resp.getheader('Content-Type')
-	html = '<li>'
-	html += '<ul><li>' + friend.name + '</li>'
-	if content_type == 'text/html':
-		html += '<li>' + resp.read() + '</li></ul>'
-	elif content_type.startswith('image'):
-		"""
-		TODO: Fix with caching the image
-
-
-		"""
-		# This should not be used because the new password gets given to the browser, which does nothing with it!
-		# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
-		html += '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
-
-	html += '<ul>'
-	for child in tree['children']:
-		html += render_links(child, friend, me)
-	html += '</ul>'
-	html += '</li>'
-	return html
-
-def home(request):
-	# The first Friend is "the owner, so use it to access the server"
-	me = Friend.objects.filter()[0]
-
-	source_address = '/posts'
-	html = ''
-	try:
-		resp = get_from_friend(source_address, me, me)
-		content = resp.read()
-
-		html += '<h1>Home</h1>'
-
-		html += render_links(json.loads(content), me, me)
-
-	except Exception as e:
-		html += 'Failed to get JSON (from '+ me.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
-		html += 'Response text: ' + content
-
-	return HttpResponse(html)
-
 class TimelineView(TemplateView):
 	template_name = "timeline.html"
 
+	#Whether the posts are mine or my friends as well
+	just_me = False
 
 	class CommentForm(forms.Form):
 	    content_text = forms.CharField(label='Comment', max_length=128)
@@ -121,7 +74,10 @@ class TimelineView(TemplateView):
 
 		source_address = '/timeline'
 
-		friends = Friend.objects.filter()#[1:]
+		if self.just_me:
+			friends = [Friend.objects.filter()[0]]
+		else:
+			friends = Friend.objects.filter()
 
 		timeline = []
 
@@ -168,6 +124,8 @@ class TimelineView(TemplateView):
 				'post_form' : self.PostForm(),
 				'comment_form' : self.CommentForm()}
 
+def home(request):
+	return TimelineView.as_view(just_me = True)(request)
 
 def timeline(request):
 	return TimelineView.as_view()(request)
