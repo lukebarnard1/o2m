@@ -89,7 +89,7 @@ class TimelineView(TemplateView):
 				if len(link['children']):
 					assign_links_address(link['children'])
 			return links
-		
+
 		for friend in friends:
 			resp = None
 			try:
@@ -130,7 +130,12 @@ class TimelineView(TemplateView):
 
 		for link in links:
 			friend = Friend.objects.get(address = link['friend']['address'], port = link['friend']['port'])
-			link['html'] = link_to_html(link, friend, me)
+			try:
+				link['html'] = link_to_html(link, friend, me)
+			except:
+				link['html'] = None
+
+		links = [link for link in links if link['html'] is not None]
 
 		return {'links' : links,
 				'me' : model_to_dict(me),
