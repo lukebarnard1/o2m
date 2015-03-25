@@ -15,7 +15,7 @@ import random
 import string
 
 def random_content_name():
-	return "".join([random.choice(string.ascii_letters + string.digits + "-") for i in xrange(32)])
+	return "".join([random.choice(string.digits) for i in xrange(8)])
 
 def get_authenticated_link(source_address, me, friend):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
@@ -168,13 +168,19 @@ def add_content_link(friend_address, friend_port, content_text, parent_id):
 	variables = {
 		'content_text': content_text
 	}
+
+	content_id = random_content_name()
+
 	content_add_response = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', variables = variables)
 
-	content_id = json.loads(content_add_response.read())['content_id']
+	if content_add_response.status == 200:
+		content_id = json.loads(content_add_response.read())['content_id']
 
-	friend = Friend.objects.get(address = friend_address, port = friend_port)
+		friend = Friend.objects.get(address = friend_address, port = friend_port)
 
-	return get_from_friend('/node/{0}'.format(parent_id), friend , me, method='POST', variables = {'content_id': content_id})
+		return get_from_friend('/node/{0}'.format(parent_id), friend , me, method='POST', variables = {'content_id': content_id})
+	else:
+		return content_add_response
 
 
 def add_content(request):

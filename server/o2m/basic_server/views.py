@@ -42,7 +42,7 @@ class AuthenticatedView(View):
 			if user.is_active:
 				login(request, user)
 
-				if not self.must_be_owner() or username == Friend.objects[0].name:
+				if not self.must_be_owner() or username == o2m.settings.ME:
 					response = self.get_response(request, user)
 
 					new_password = random_password()
