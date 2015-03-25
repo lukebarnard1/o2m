@@ -209,6 +209,32 @@ class AddLink(AuthenticatedView):
 
 		return HttpResponse('Link added')
 
+class AddContent(AuthenticatedView):
+
+	def must_be_owner(self):
+		"""You must always be the owner to add content"""
+		return True
+
+	def get_response(self, request, user):
+		""""""
+
+		content_text = request.POST['content_text']
+		content_id = self.content_id
+		content_file_name = o2m.settings.O2M_BASE + '/' + content_id + '.html'
+
+		print '(Server)Using content_id {0} for content filename'.format(content_id)
+
+		try:
+			f = open(content_file_name, 'w')
+			f.write(content_text)
+		finally:
+			f.close()
+
+		content = Content.objects.create(file_path = content_file_name)
+		content.save()
+
+		return HttpResponse('Content added')
+
 def posts(request):
 	if request.method == 'GET':
 		return PostsView.as_view(content_id = 1)(request)
@@ -221,7 +247,10 @@ def add_link(request, content_id):
 def content(request, content_id):
 	"""Serves content as a file, returning it's guessed Content-Type.
 	"""
-	return ContentView.as_view(content_id = content_id)(request)
+	if request.method == 'GET':
+		return ContentView.as_view(content_id = content_id)(request)
+	elif request.method == 'POST':
+		return AddContent.as_view(content_id = content_id)(request)
 
 def timeline(request):
 	return TimelineView.as_view()(request)
