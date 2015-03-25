@@ -165,19 +165,12 @@ def add_content_link(friend_address, friend_port, content_text, parent_id):
 	and creates a row in the Content model which refers to it. Then
 	the friend is sent a link to this content."""
 	me = Friend.objects.get(name=o2m.settings.ME)
+	variables = {
+		'content_text': content_text
+	}
+	content_add_response = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', variables = variables)
 
-	content_file_name = o2m.settings.O2M_BASE + '/' + random_content_name() + '.html'
-
-	try:
-		f = open(content_file_name, 'w')
-		f.write(content_text)
-	finally:
-		f.close()
-
-	content = Content.objects.create(file_path = content_file_name)
-	content.save()
-
-	content_id = content.pk
+	content_id = json.loads(content_add_response.read())['content_id']
 
 	friend = Friend.objects.get(address = friend_address, port = friend_port)
 

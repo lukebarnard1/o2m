@@ -222,7 +222,7 @@ class AddContent(AuthenticatedView):
 		content_id = self.content_id
 		content_file_name = o2m.settings.O2M_BASE + '/' + content_id + '.html'
 
-		print '(Server)Using content_id {0} for content filename'.format(content_id)
+		print '(Server)Using content_id {0} for content filename (but not for the actual id yet)'.format(content_id)
 
 		try:
 			f = open(content_file_name, 'w')
@@ -233,7 +233,7 @@ class AddContent(AuthenticatedView):
 		content = Content.objects.create(file_path = content_file_name)
 		content.save()
 
-		return HttpResponse('Content added')
+		return HttpResponse(json.dumps({'content_id' : content.pk}))
 
 def posts(request):
 	if request.method == 'GET':
