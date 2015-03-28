@@ -33,7 +33,7 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		if new_password is not None:
 			friend.password = new_password
 			friend.save()
-		print "(Client)Getting {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name)
+		print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name, method)
 	finally:
 		con.close()
 	return resp
@@ -44,17 +44,21 @@ def link_to_html(link, friend, me):
 	resp = get_from_friend(content_link, friend, me)
 
 	content_type = resp.getheader('Content-Type')
-	if content_type == 'text/html':
-		return resp.read()
-	elif content_type.startswith('image'):
-		"""
-		TODO: Fix with caching the image
+
+	if resp.status == 200:
+		if content_type == 'text/html':
+			return resp.read()
+		elif content_type.startswith('image'):
+			"""
+			TODO: Fix with caching the image
 
 
-		"""
-		# This should not be used because the new password gets given to the browser, which does nothing with it!
-		# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
-		return '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
+			"""
+			# This should not be used because the new password gets given to the browser, which does nothing with it!
+			# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
+			return '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
+	else:
+		return 'Error fetching content: {0} {1}'.format(resp.status, resp.reason)
 
 class TimelineView(TemplateView):
 	template_name = "timeline.html"
@@ -184,7 +188,7 @@ def add_content_link(friend_address, friend_port, content_text, parent_id):
 
 
 def add_content(request):
-	"""Adds content to this server whilst also sending a new link to the friend
+	"""Adds content to the server belonging to 'me' whilst also sending a new link to the friend
 	specified in the POST variables
 	"""
 	print '(Client)',request.POST
@@ -202,5 +206,21 @@ def add_content(request):
 		print "Failure"
 		return HttpResponse(resp.read())
 		#return redirect('/o2m/timeline?error=Linking+Error')
+
+def delete_content(request):
+	"""Deletes content from the server belonging to 'me'
+	"""
+	me = Friend.objects.get(name=o2m.settings.ME)
+	content_id = request.POST['content_id']
+
+	content_delete_response = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
+
+	if content_delete_response.status == 200:
+		print "Success"
+		return redirect('/o2m/timeline')
+	else:
+		print "Failure"
+		return HttpResponse(content_delete_response.read())
+		#return redirect('/o2m/timeline?error=Delete+Error')
 
 

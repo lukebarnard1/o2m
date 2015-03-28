@@ -106,6 +106,25 @@ class AuthenticatedView(View):
 
 		return response
 
+	def delete(self, request):
+		response = HttpResponse()
+		print '(Server)Getting username and password'
+		try:
+			username = request.GET['username']
+			password = request.GET['password']
+			
+			response = self.get_authenticated_response(request, username, password)
+
+		except MultiValueDictKeyError as e:
+			response.reason_phrase = 'Give me username and password'
+			response.status_code = 401
+
+		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
+
+		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
+
+		return response
+
 def dict_for_node(node):
 	result = model_to_dict(node)
 	result['creation_time'] = node.creation_time.__str__()
@@ -144,7 +163,12 @@ class PostsView(JSONView):
 
 class ContentView(AuthenticatedView):
 	def get_response(self, request, user):
-		resp = Content.objects.get(pk=self.content_id).get_http_response()
+		try:
+			resp = Content.objects.get(pk=self.content_id).get_http_response()
+		except:
+			resp = HttpResponse('Could not find that content')
+			resp.reason_phrase = 'Could not find that content'
+			resp.status_code = 404
 		return resp
 
 class TimelineView(JSONView):
@@ -235,6 +259,21 @@ class AddContent(AuthenticatedView):
 
 		return HttpResponse(json.dumps({'content_id' : content.pk}))
 
+class DeleteContent(AuthenticatedView):
+
+	def must_be_owner(self):
+		"""You must always be the owner to delete content"""
+		return True
+
+	def get_response(self, request, user):
+		print '(Server)Deleting content...'
+		content_id = self.content_id
+		content = Content.objects.get(pk = content_id)
+		content.delete()
+
+		return HttpResponse('Content deleted')
+
+
 def posts(request):
 	if request.method == 'GET':
 		return PostsView.as_view(content_id = 1)(request)
@@ -251,6 +290,8 @@ def content(request, content_id):
 		return ContentView.as_view(content_id = content_id)(request)
 	elif request.method == 'POST':
 		return AddContent.as_view(content_id = content_id)(request)
+	elif request.method == 'DELETE':
+		return DeleteContent.as_view(content_id = content_id)(request)
 
 def timeline(request):
 	return TimelineView.as_view()(request)

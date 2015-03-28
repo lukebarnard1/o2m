@@ -10,6 +10,8 @@ import json,mimetypes
 from datetime import datetime
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
+from django.db.models.signals import post_delete as post_delete_signal
+from django.dispatch import receiver
 
 # Create your models here.
 
@@ -67,6 +69,18 @@ class Content(models.Model):
 			return '<img src="{0}" width="200" alt="{0}">'.format(file_path)
 
 		return 'Unknown file type'
+
+	@receiver(post_delete_signal)
+	def post_delete(sender, **kwargs):
+		if sender == Content:
+			self, signal, using = tuple(kwargs.values())
+			try:
+				os.remove(self.file_path)
+				return True
+			except:
+				print 'Failed to remove associated content file at {0}'.format(self.file_path)
+				return False
+
 
 	def __str__(self):
 		return "Content[{1}] at {0}".format(self.file_path, self.id)
