@@ -27,23 +27,35 @@ class AuthenticatedView(View):
 	content_id = 1
 	limit = 3
 
-	def must_be_owner(self):
+	def must_be_owner(self, request):
 		"""True if the username and password should be the owner
 		of the server.
 		"""
 		return False
 
-	def get_authenticated_response(self, request, username, password):
+	def dispatch(self, request, *args, **kwargs):
 		response = HttpResponse()
+
+		try:
+			username = request.GET['username']
+			password = request.GET['password']
+
+		except MultiValueDictKeyError as e:
+			response.reason_phrase = 'Give me username and password'
+			response.status_code = 401
+			return response
+
 		print '(Server)Authenticating ' + username
 		user = authenticate(username=username, password=password)
 		if user is not None:
 			print '(Server)User authenticated as ' + username
 			if user.is_active:
+				print '(Server)Logging in...'
 				login(request, user)
 
-				if not self.must_be_owner() or username == o2m.settings.ME:
-					response = self.get_response(request, user)
+				if not self.must_be_owner(request) or username == o2m.settings.ME:
+					print '(Server)Dispatching...'
+					response = super(AuthenticatedView, self).dispatch(request, *args, **kwargs)
 
 					new_password = random_password()
 
@@ -61,64 +73,9 @@ class AuthenticatedView(View):
 		else:
 			response.reason_phrase = 'You are not my friend or that password was wrong'
 			response.status_code = 401
-		return response
-
-	def post(self, request): 
-		response = HttpResponse()
-		print '(Server)Getting username and password'
-		print request.GET
-		try:
-			username = request.GET['username']
-			password = request.GET['password']
-			
-			response = self.get_authenticated_response(request, username, password)
-
-		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password'
-			response.status_code = 401
-
+		
+		# Display simple content to display error for slightly easier debug
 		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
-
-		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
-
-		return response
-
-
-	def get(self, request):
-		response = HttpResponse()
-		print '(Server)Getting username and password'
-		try:
-			username = request.GET['username']
-			password = request.GET['password']
-			
-			response = self.get_authenticated_response(request, username, password)
-
-		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password'
-			response.status_code = 401
-
-		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
-
-		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
-
-		return response
-
-	def delete(self, request):
-		response = HttpResponse()
-		print '(Server)Getting username and password'
-		try:
-			username = request.GET['username']
-			password = request.GET['password']
-			
-			response = self.get_authenticated_response(request, username, password)
-
-		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password'
-			response.status_code = 401
-
-		if response.status_code != 200: response.content += str(response.status_code) + '  ' + str(response.reason_phrase) 
-
-		print "(Server)Returning: {0} because {1}".format(response.status_code, response.reason_phrase)
 
 		return response
 
@@ -144,23 +101,16 @@ class JSONView(AuthenticatedView):
 	def get_node_for_json(self):
 		return Link.objects.filter()[0]
 	
-	def get_response(self, request, user):
+	def get(self, request):
 		response = HttpResponse()
 		
 		response.content = json_for_node(self.get_node_for_json())
 		
 		return response
 
-class PostsView(JSONView):
-	def get_node_for_json(self):
-		if self.content_id == 1:
-			return Link.objects.filter()[0]
-		else:
-			return Link.objects.get(content=self.content_id)
-
-
-class TimelineView(JSONView):
-	def get_response(self, request, user):
+class TimelineView(AuthenticatedView):
+	def get(self, request):
+		print '(Server)Getting timeline'
 		response = HttpResponse()
 		
 		timeline = Link.objects.filter(parent = None).order_by('-creation_time')
@@ -171,19 +121,27 @@ class TimelineView(JSONView):
 			timeline_dicts.append(dict_for_node(post))
 			
 		response.content = json.dumps(timeline_dicts)
+		print response.content
 		
 		return response
 
-class AddLink(AuthenticatedView):
+class LinkView(JSONView):
 
-	parent_content_id = 1
+	content_id = 1
 
-	def must_be_owner(self):
+	def must_be_owner(self, request):
 		"""You must be owner to add a child link to the link
-		that refers to content 1."""
-		return self.parent_content_id == 1
+		that refers to content 1. Deletion authentication is
+		handled in the delete method."""
+		return (request.method == 'POST' and self.content_id == 1) or request.method == 'DELETE'
 
-	def get_response(self, request, user):
+	def get_node_for_json(self):
+		if self.content_id == 1:
+			return Link.objects.filter()[0]
+		else:
+			return Link.objects.get(content=self.content_id)
+
+	def post(self, request):
 		"""Add a post based on the request.
 
 		POST variables must include 'content_id' to assign the 
@@ -192,14 +150,16 @@ class AddLink(AuthenticatedView):
 
 		This method currently assumes that the content will be
 		there."""
-		potential_parents = Link.objects.filter(content = self.parent_content_id)
+		potential_parents = Link.objects.filter(content = self.content_id)
+
 		print '(Server)Adding link to first of ',potential_parents
+
 		if len(potential_parents):
 			parent = potential_parents[0]
 		else:
 			parent = None
 
-		friend = Friend.objects.get(name = user.username)
+		friend = Friend.objects.get(name = request.user.username)
 		try:
 			content = request.POST['content_id']
 
@@ -209,41 +169,37 @@ class AddLink(AuthenticatedView):
 			r.reason = 'No content id specified'
 			return r
 
-
 		link = Link.objects.create(friend = friend, content = content)
 		link.parent = parent
 		link.save()
 
-		# try:
-		# 	Link.objects.insert_node(parent, link, save=True)
-		# except Exception as e:
-		# 	print e
-
 		return HttpResponse('Link added')
 
-class DeleteLink(AuthenticatedView):
+	def delete(self, request):
+		"""Delete a link from the tree and any links below it.
 
-	content_id = 1
-
-	def get_response(self, request, user):
-		""""""
+		This does not affect content."""
 
 		link = Link.objects.get(content = self.content_id)
 
-		friend = Friend.objects.get(name = user.username)
+		friend = Friend.objects.get(name = request.user.username)
 		
 		if link.friend.id == friend.id:
 			link.delete()
-			return HttpResponse('Link added')
+			return HttpResponse('Link deleted')
 		else:
 			r = HttpResponse()
 			r.status = 403
 			r.reason = 'You can only delete links that you created'
 			return r
 
-
 class ContentView(AuthenticatedView):
-	def get_response(self, request, user):
+
+	def must_be_owner(self, request):
+		"""You must always be the owner to add or delete content"""
+		return request.method in ('POST', 'DELETE')
+
+	def get(self, request):
 		try:
 			resp = Content.objects.get(pk=self.content_id).get_http_response()
 		except Exception as e:
@@ -253,15 +209,7 @@ class ContentView(AuthenticatedView):
 			resp.status_code = 404
 		return resp
 
-class AddContent(AuthenticatedView):
-
-	def must_be_owner(self):
-		"""You must always be the owner to add content"""
-		return True
-
-	def get_response(self, request, user):
-		""""""
-
+	def post(self, request):
 		content_text = request.POST['content_text']
 		content_id = self.content_id
 		content_file_name = o2m.settings.O2M_BASE + '/' + content_id + '.html'
@@ -271,6 +219,8 @@ class AddContent(AuthenticatedView):
 		try:
 			f = open(content_file_name, 'w')
 			f.write(content_text)
+		except Exception as e:
+			print "(Server){0}".format(e)
 		finally:
 			f.close()
 
@@ -279,13 +229,7 @@ class AddContent(AuthenticatedView):
 
 		return HttpResponse(json.dumps({'content_id' : content.pk}))
 
-class DeleteContent(AuthenticatedView):
-
-	def must_be_owner(self):
-		"""You must always be the owner to delete content"""
-		return True
-
-	def get_response(self, request, user):
+	def delete(self, request):
 		try:
 			content = Content.objects.get(pk = self.content_id)
 			content.delete()
@@ -299,26 +243,15 @@ class DeleteContent(AuthenticatedView):
 			return resp
 
 def posts(request):
-	if request.method == 'GET':
-		return PostsView.as_view(content_id = 1)(request)
-	elif request.method == 'POST':
-		return AddLink.as_view(parent_content_id = 1)(request)
+	return LinkView.as_view(content_id = 1)(request)
 
 def link(request, content_id):
-	if request.method == 'POST':
-		return AddLink.as_view(parent_content_id = content_id)(request)
-	elif request.method == 'DELETE':
-		return DeleteLink.as_view(content_id = content_id)(request)
+	return LinkView.as_view(content_id = content_id)(request)
 
 def content(request, content_id):
 	"""Serves content as a file, returning it's guessed Content-Type.
 	"""
-	if request.method == 'GET':
-		return ContentView.as_view(content_id = content_id)(request)
-	elif request.method == 'POST':
-		return AddContent.as_view(content_id = content_id)(request)
-	elif request.method == 'DELETE':
-		return DeleteContent.as_view(content_id = content_id)(request)
+	return ContentView.as_view(content_id = content_id)(request)
 
 def timeline(request):
 	return TimelineView.as_view()(request)

@@ -204,8 +204,8 @@ def add_content(request):
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		#return HttpResponse(resp.read())
-		return redirect('/o2m/timeline?error={0}'.format(resp.reason))
+		return HttpResponse(resp.read())
+		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 def delete_content(request):
 	"""Deletes content from the server belonging to 'me'
@@ -220,8 +220,8 @@ def delete_content(request):
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		# return HttpResponse(resp.read())
-		return redirect('/o2m/timeline?error={0}'.format(resp.reason))
+		return HttpResponse(resp.read())
+		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 def delete_link(request):
 	"""Deletes link belonging to a friend (who could be 'me')
