@@ -18,10 +18,11 @@
 				<div class="panel-heading">
 					{{link.friend.name}} posted this {{link.creation_time | naturaltime}}
 					<div class="pull-right">
-						<form action="/o2m/delete_content" method="POST">
+						<form action="/o2m/delete_link" method="POST">
 							{% csrf_token %}
 							<input type="hidden" name="content_id" value="{{link.content}}"/>
-							<a href='javascript:;' onclick='submit()'>
+							<input type="hidden" name="friend_id" value="{{link.friend.id}}"/>
+							<a href="javascript:;" onclick="submit()" title="Delete link">
 								<span class="glyphicon glyphicon-remove"></span>
 							</a>
 						</form>
@@ -29,6 +30,15 @@
 				</div>
 				<div class="panel-body">
 					{{link.html | safe}}
+					<div class="pull-right">
+						<form action="/o2m/delete_content" method="POST">
+							{% csrf_token %}
+							<input type="hidden" name="content_id" value="{{link.content}}"/>
+							<a href="javascript:;" onclick="submit()" title="Delete content">
+								<span class="glyphicon glyphicon-remove"></span>
+							</a>
+						</form>
+					</div>
 				</div>
 				<div class="panel-footer">
 					<form action="/o2m/add_content" method="POST">

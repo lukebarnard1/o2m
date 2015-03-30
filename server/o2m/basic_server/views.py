@@ -51,9 +51,6 @@ class AuthenticatedView(View):
 					user.save()
 
 					response['np'] = new_password
-
-					response.reason_phrase = 'Go right ahead and read my posts'
-					response.status_code = 200
 				else:
 					response.reason_phrase = 'Only the owner can do that'
 					response.status_code = 401
@@ -161,15 +158,6 @@ class PostsView(JSONView):
 		else:
 			return Link.objects.get(content=self.content_id)
 
-class ContentView(AuthenticatedView):
-	def get_response(self, request, user):
-		try:
-			resp = Content.objects.get(pk=self.content_id).get_http_response()
-		except:
-			resp = HttpResponse('Could not find that content')
-			resp.reason_phrase = 'Could not find that content'
-			resp.status_code = 404
-		return resp
 
 class TimelineView(JSONView):
 	def get_response(self, request, user):
@@ -191,7 +179,7 @@ class AddLink(AuthenticatedView):
 	parent_content_id = 1
 
 	def must_be_owner(self):
-		"""You must be ownser to add a child link to the link
+		"""You must be owner to add a child link to the link
 		that refers to content 1."""
 		return self.parent_content_id == 1
 
@@ -233,6 +221,38 @@ class AddLink(AuthenticatedView):
 
 		return HttpResponse('Link added')
 
+class DeleteLink(AuthenticatedView):
+
+	content_id = 1
+
+	def get_response(self, request, user):
+		""""""
+
+		link = Link.objects.get(content = self.content_id)
+
+		friend = Friend.objects.get(name = user.username)
+		
+		if link.friend.id == friend.id:
+			link.delete()
+			return HttpResponse('Link added')
+		else:
+			r = HttpResponse()
+			r.status = 403
+			r.reason = 'You can only delete links that you created'
+			return r
+
+
+class ContentView(AuthenticatedView):
+	def get_response(self, request, user):
+		try:
+			resp = Content.objects.get(pk=self.content_id).get_http_response()
+		except Exception as e:
+			print "(Server){0}".format(e)
+			resp = HttpResponse('Could not find that content')
+			resp.reason_phrase = 'Could not find that content'
+			resp.status_code = 404
+		return resp
+
 class AddContent(AuthenticatedView):
 
 	def must_be_owner(self):
@@ -266,13 +286,17 @@ class DeleteContent(AuthenticatedView):
 		return True
 
 	def get_response(self, request, user):
-		print '(Server)Deleting content...'
-		content_id = self.content_id
-		content = Content.objects.get(pk = content_id)
-		content.delete()
+		try:
+			content = Content.objects.get(pk = self.content_id)
+			content.delete()
 
-		return HttpResponse('Content deleted')
-
+			return HttpResponse('Content deleted')
+		except Exception as e:
+			print "(Server){0}".format(e)
+			resp = HttpResponse('Could not delete that content')
+			resp.reason_phrase = 'Could not delete that content'
+			resp.status_code = 404
+			return resp
 
 def posts(request):
 	if request.method == 'GET':
@@ -280,8 +304,11 @@ def posts(request):
 	elif request.method == 'POST':
 		return AddLink.as_view(parent_content_id = 1)(request)
 
-def add_link(request, content_id):
-	return AddLink.as_view(parent_content_id = content_id)(request)
+def link(request, content_id):
+	if request.method == 'POST':
+		return AddLink.as_view(parent_content_id = content_id)(request)
+	elif request.method == 'DELETE':
+		return DeleteLink.as_view(content_id = content_id)(request)
 
 def content(request, content_id):
 	"""Serves content as a file, returning it's guessed Content-Type.

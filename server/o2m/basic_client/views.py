@@ -204,8 +204,8 @@ def add_content(request):
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return HttpResponse(resp.read())
-		#return redirect('/o2m/timeline?error=Linking+Error')
+		#return HttpResponse(resp.read())
+		return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 def delete_content(request):
 	"""Deletes content from the server belonging to 'me'
@@ -213,14 +213,39 @@ def delete_content(request):
 	me = Friend.objects.get(name=o2m.settings.ME)
 	content_id = request.POST['content_id']
 
-	content_delete_response = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
+	resp = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
 
-	if content_delete_response.status == 200:
+	if resp.status == 200:
 		print "Success"
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return HttpResponse(content_delete_response.read())
-		#return redirect('/o2m/timeline?error=Delete+Error')
+		# return HttpResponse(resp.read())
+		return redirect('/o2m/timeline?error={0}'.format(resp.reason))
+
+def delete_link(request):
+	"""Deletes link belonging to a friend (who could be 'me')
+
+	This requires the POST variable 'content_id' to be set to the 
+	content that this link refers to. The content may have been 
+	deleted already, but it is also not necessary for it to have
+	been deleted.
+	"""
+	me = Friend.objects.get(name=o2m.settings.ME)
+	
+	content_id = request.POST['content_id']
+	friend_id = request.POST['friend_id']
+
+	friend = Friend.objects.get(pk=friend_id)
+
+	resp = get_from_friend('/node/{0}'.format(content_id), friend, me, method = 'DELETE')
+
+	if resp.status == 200:
+		print "Success"
+		return redirect('/o2m/timeline')
+	else:
+		print "Failure"
+		return HttpResponse(resp.read())
+		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 
