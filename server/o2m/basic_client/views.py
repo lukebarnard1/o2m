@@ -21,7 +21,7 @@ def get_authenticated_link(source_address, me, friend):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
-	print "(Client)Logging into {0} as {1} to do {2} with {3} with URI {4} ".format(friend, me, method, variables, source_address)
+	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, friend.address, friend.port)
 	try:
 		con = httplib.HTTPConnection(friend.address, friend.port)
 		con.request(method, get_authenticated_link(source_address, me, friend), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
@@ -39,21 +39,26 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 	return resp
 
 def link_to_html(link, friend, me):
-	content_link = '/content/{0}'.format(link['content']) 
-	
+	content_link = '/content/{0}'.format(link['content'])
+
 	resp = get_from_friend(content_link, friend, me)
 
 	content_type = resp.getheader('Content-Type')
+
+	"""
+	TODO: Should this be clientside? Yes... 
+
+	- Fetch the contents and store localy
+	- Assign a new CachedContent object and store in database
+	- Return http response based on newly cached content
+	- CachedContents stored in this way should have a TTL before they are fetched again (HTTP Cache header)
+	- These cannot be linked to, but if they have timed out then they should be asked for again, otherwise just keep using them
+	"""
 
 	if resp.status == 200:
 		if content_type == 'text/html':
 			return resp.read()
 		elif content_type.startswith('image'):
-			"""
-			TODO: Fix with caching the image
-
-
-			"""
 			# This should not be used because the new password gets given to the browser, which does nothing with it!
 			# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
 			return '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
@@ -145,7 +150,9 @@ class TimelineView(TemplateView):
 		links = get_children_indented(timeline)
 
 		for link in links:
+			print link['friend']
 			friend = Friend.objects.get(address = link['friend']['address'], port = link['friend']['port'])
+			print friend
 			try:
 				link['html'] = link_to_html(link, friend, me)
 			except:

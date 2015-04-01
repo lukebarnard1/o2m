@@ -133,7 +133,7 @@ class LinkView(JSONView):
 		"""You must be owner to add a child link to the link
 		that refers to content 1. Deletion authentication is
 		handled in the delete method."""
-		return (request.method == 'POST' and self.content_id == 1) or request.method == 'DELETE'
+		return (request.method == 'POST' and self.content_id == 1) or request.method != 'DELETE'
 
 	def get_node_for_json(self):
 		if self.content_id == 1:

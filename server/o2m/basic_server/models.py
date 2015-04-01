@@ -53,23 +53,6 @@ class Content(models.Model):
 		"""
 		return HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
 
-	def get_html_representation(self):
-		file_path = file_path_to_media(self.file_path)
-		file_type = file_path[file_path.rindex('.') + 1:].lower()
-
-		if file_type in ['txt', 'html']:
-			text = read_file(file_path)
-
-			if file_type == 'txt':
-				return '<p>{0}</p>'.format(escape(text))
-			elif file_type == 'html':
-				return text
-
-		elif file_type == 'png' or file_type == 'jpg':
-			return '<img src="{0}" width="200" alt="{0}">'.format(file_path)
-
-		return 'Unknown file type'
-
 	@receiver(post_delete_signal)
 	def post_delete(sender, **kwargs):
 		if sender == Content:
@@ -80,7 +63,6 @@ class Content(models.Model):
 			except:
 				print 'Failed to remove associated content file at {0}'.format(self.file_path)
 				return False
-
 
 	def __str__(self):
 		return "Content[{1}] at {0}".format(self.file_path, self.id)
@@ -107,47 +89,6 @@ class Link(mptt.models.MPTTModel):
 			return Content.objects.get(pk=self.content)
 		else:
 			return None
-
-	def get_content_from_friend(self):
-		friend = self.friend
-		html = ''
-		print 'Trying to get content from {0} with password {1} and ip {2}'.format(friend.name, friend.password, friend.address)
-
-		source_address = '/content/{0}.json'.format(self.content)
-		con = httplib.HTTPConnection(friend.address, friend.port)
-		try:
-			con.request('GET', source_address + '?' + urllib.urlencode({'username':'Luke Barnard', 'password': friend.password}))
-			resp = con.getresponse()
-
-			#Retrieve new password for request next time
-			new_password = resp.getheader('np')
-
-			if new_password is not None:
-				friend.password = new_password
-				friend.save()
-
-			content = resp.read()
-
-			# try:
-			# 	loaded_content = json.loads(js)
-
-			# 	for name, cls in [('content', Content)]:
-			# 		if loaded_content[name]: 
-			# 			loaded_content[name] = cls.objects.get(pk=loaded_content[name])
-			# 		else:
-			# 			loaded_content[name] = None
-
-			# 	print loaded_content
-
-			# 	populated_link = Link(**loaded_content)
-
-			html += '<li class="media"><h4>Linked from {1}:</h4></li>{0}'.format(content, friend.name)
-			# except Exception as e:
-			# 	html += 'Failed to get JSON (from '+ friend.name + '): ' + str(resp.status) + ' - ' + str(resp.reason) + ' ' + str(e) + '<br>'
-			# 	html += 'Response text: ' + js
-		finally:
-			con.close()
-		return html
 
 	def __str__(self):
 		content_text = ''
