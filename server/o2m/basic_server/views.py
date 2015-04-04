@@ -93,13 +93,16 @@ def dict_for_node(node):
 	return result
 
 def json_for_node(node):
-	return json.dumps(dict_for_node(node), indent=4)
+	if node is None:
+		return ''
+	else:
+		return json.dumps(dict_for_node(node), indent=4)
 
 
 class JSONView(AuthenticatedView):
 
 	def get_node_for_json(self):
-		return Link.objects.filter()[0]
+		return None
 	
 	def get(self, request):
 		response = HttpResponse()
@@ -133,11 +136,14 @@ class LinkView(JSONView):
 		"""You must be owner to add a child link to the link
 		that refers to content 1. Deletion authentication is
 		handled in the delete method."""
-		return (request.method == 'POST' and self.content_id == 1) or request.method != 'DELETE'
+		return request.method == 'POST' and self.content_id == 1
 
 	def get_node_for_json(self):
 		if self.content_id == 1:
-			return Link.objects.filter()[0]
+			try:
+				return Link.objects.filter()[0]
+			except IndexError as e:
+				return None
 		else:
 			return Link.objects.get(content=self.content_id)
 
