@@ -25,5 +25,6 @@ urlpatterns = patterns('',
     url(r'^timeline$', 'basic_server.views.timeline'),
     url(r'^node/(?P<content_id>.*)$', 'basic_server.views.link'),
     url(r'^content/(?P<content_id>[0-9]*)$', 'basic_server.views.content'),
+    url(r'^notifications/$', 'basic_server.views.notifications'),
 
 )
