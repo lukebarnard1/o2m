@@ -248,6 +248,48 @@ class ContentView(AuthenticatedView):
 			resp.status_code = 404
 			return resp
 
+class NotificationView(AuthenticatedView):
+	def must_be_owner(self, request):
+		"""In order to view notifications, you must be the owner."""
+		return request.method == 'GET'
+
+	def get(self, request):
+		response = HttpResponse()
+		notifications = Notification.objects
+
+		notification_dicts = []
+
+		for n in notifications:
+			ObjectModel = getattr(models, n.notification_type.objtype)
+
+			n.object = ObjectModel.objects.get(pk=n.objid)
+
+			n_dict = {
+				'title': n.title.format(
+					notification=n
+				)
+			}
+
+			notification_dicts.append(n_dict)
+
+		response.content = json.dumps(notification_dicts)
+
+		return response
+
+	def post(self, request):
+		response = HttpResponse()
+
+		notification = json.loads(request.POST['notification'])
+
+		notif_keys = notification.keys()
+
+		if notif_keys == ['objid', 'notification_type']:
+			raise Exception('You must provide objid and notification_type')
+
+		Notification.objects.create(**notification)
+
+		return response
+
 def posts(request):
 	return LinkView.as_view(content_id = 1)(request)
 
@@ -261,5 +303,8 @@ def content(request, content_id):
 
 def timeline(request):
 	return TimelineView.as_view()(request)
+
+def notifications(request):
+	return NotificationView.as_view(request)
 
 
