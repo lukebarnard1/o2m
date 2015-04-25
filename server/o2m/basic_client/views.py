@@ -255,17 +255,29 @@ def delete_link(request):
 		return HttpResponse(resp.read())
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
-def NotificationView(TemplateView):
+class NotificationView(TemplateView):
 	template_name = "notifications.html"
 
 	def get_context_data(self, **kwargs):
 		me = Friend.objects.get(name=o2m.settings.ME)
 		print "(Client)Me:",me
 
-		source_address = '/notifications'
+		source_address = '/notifications/'
 
-		return {'notifications' : notifications,
-				'me' : model_to_dict(me)}
+		try:
+			resp = get_from_friend(source_address, me, me)
+		except Exception as e:
+			print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
+
+		if resp is not None:
+			if resp.status == 200:
+				notifications = json.loads(resp.read())
+				print notifications
+
+				return {'notifications' : notifications,
+						'me' : model_to_dict(me)}
+			else:
+				print resp.reason
 
 def notifications(request):
 	return NotificationView.as_view()(request)

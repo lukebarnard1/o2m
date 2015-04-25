@@ -9,7 +9,7 @@ from django.utils.html import escape
 from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.auth import authenticate, login
 
-from basic_server.models import Link, Content, Friend
+from basic_server.models import Link, Content, Friend, Notification
 
 import o2m
 import os
@@ -255,17 +255,18 @@ class NotificationView(AuthenticatedView):
 
 	def get(self, request):
 		response = HttpResponse()
-		notifications = Notification.objects
+		notifications = Notification.objects.all()
 
 		notification_dicts = []
 
 		for n in notifications:
+			import models
 			ObjectModel = getattr(models, n.notification_type.objtype)
 
 			n.object = ObjectModel.objects.get(pk=n.objid)
 
 			n_dict = {
-				'title': n.title.format(
+				'title': n.notification_type.title.format(
 					notification=n
 				)
 			}
@@ -305,6 +306,10 @@ def timeline(request):
 	return TimelineView.as_view()(request)
 
 def notifications(request):
-	return NotificationView.as_view(request)
+	try:
+		return NotificationView.as_view()(request)
+	except Exception as e:
+		import traceback
+		traceback.print_exc()
 
 

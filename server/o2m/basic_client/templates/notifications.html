@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container">
+	<ul class="media-list">
+	{% for n in notifications %}
+		<li class="content media">
+			{{n.title}}
+		</li>
+	{% empty %}
+		No notifications
+	{% endfor %}
+	</ul>
+</div>
+{% endblock %}
