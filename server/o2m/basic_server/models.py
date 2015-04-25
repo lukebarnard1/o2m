@@ -102,3 +102,13 @@ class Link(mptt.models.MPTTModel):
 			content_text = 'The file is on another friend\'s computer'
 
 		return "Link {0}: Content {1}".format(self.friend.name, content_text)
+
+class NotificationType(models.Model):
+	name = models.CharField(max_length=32)
+	objtype = models.CharField(max_length=32)
+	title = models.CharField(max_length=64)
+
+class Notification(models.Model):
+	notification_type = models.ForeignKey(NotificationType)
+	friend = models.ForeignKey(Friend)
+	objid = models.BigIntegerField()
