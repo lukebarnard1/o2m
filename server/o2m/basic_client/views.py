@@ -255,4 +255,19 @@ def delete_link(request):
 		return HttpResponse(resp.read())
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
+def NotificationView(TemplateView):
+	template_name = "notifications.html"
+
+	def get_context_data(self, **kwargs):
+		me = Friend.objects.get(name=o2m.settings.ME)
+		print "(Client)Me:",me
+
+		source_address = '/notifications'
+
+		return {'notifications' : notifications,
+				'me' : model_to_dict(me)}
+
+def notifications(request):
+	return NotificationView.as_view()(request)
+
 

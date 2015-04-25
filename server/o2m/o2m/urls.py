@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     # Front end
     url(r'^o2m/home$', 'basic_client.views.home'), #Displays your own content tree
     url(r'^o2m/timeline$', 'basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/notifications$', 'basic_client.views.notifications'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/add_content$', 'basic_client.views.add_content'), #Adds content to your server and a link to the friend specified
     url(r'^o2m/delete_content$', 'basic_client.views.delete_content'),
     url(r'^o2m/delete_link$', 'basic_client.views.delete_link'),
