@@ -9,7 +9,7 @@ from django.utils.html import escape
 from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.auth import authenticate, login
 
-from basic_server.models import Link, Content, Friend, Notification
+from basic_server.models import Link, Content, Friend, Notification, NotificationType
 
 import o2m
 import os
@@ -128,6 +128,14 @@ class TimelineView(AuthenticatedView):
 		
 		return response
 
+def notify(me, notification_type, obj, receiver):
+	notification = {
+		'notification_type': notification_type, 
+		'objid': obj.id
+	}
+
+	receiver.send_notification(me, notification)
+
 class LinkView(JSONView):
 
 	content_id = 1
@@ -146,6 +154,15 @@ class LinkView(JSONView):
 				return None
 		else:
 			return Link.objects.get(content=self.content_id)
+
+	def notify_content_owners(self, me, node, friend_posting):
+		"""Notify the owner of a node that someone has added
+		content as a descendant of it."""
+
+		notify(me, 'content_add', friend_posting, node.friend)
+
+		if node.parent:
+			self.notify_content_owners(me, node.parent, friend_posting)
 
 	def post(self, request):
 		"""Add a post based on the request.
@@ -178,6 +195,11 @@ class LinkView(JSONView):
 		link = Link.objects.create(friend = friend, content = content)
 		link.parent = parent
 		link.save()
+
+		me = Friend.objects.get(name=o2m.settings.ME)
+
+		if parent:
+			self.notify_content_owners(me, parent, friend)
 
 		return HttpResponse('Link added')
 
@@ -279,13 +301,16 @@ class NotificationView(AuthenticatedView):
 
 	def post(self, request):
 		response = HttpResponse()
-
-		notification = json.loads(request.POST['notification'])
+		notification = dict(request.POST)
 
 		notif_keys = notification.keys()
 
 		if notif_keys == ['objid', 'notification_type']:
 			raise Exception('You must provide objid and notification_type')
+
+		notification['friend'] = Friend.objects.get(name=request.user.username)
+		notification['objid'] = notification['objid'][0]
+		notification['notification_type'] = NotificationType.objects.get(name=notification['notification_type'][0])
 
 		Notification.objects.create(**notification)
 

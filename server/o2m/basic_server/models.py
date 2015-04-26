@@ -41,6 +41,30 @@ class Friend(models.Model):
 	port = models.IntegerField(default=8000)
 	password = models.CharField(max_length=32)
 
+	def get_authenticated_link(self, source_address, me):
+		return source_address + '?' + urllib.urlencode({'username':me.name, 'password': self.password})
+
+	def get_from_friend(self, source_address, me, method = 'GET', variables = {}):
+		print "(Server)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(self, me, method, variables, source_address, self.address, self.port)
+		try:
+			con = httplib.HTTPConnection(self.address, self.port)
+			con.request(method, self.get_authenticated_link(source_address, me), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
+			resp = con.getresponse()
+
+			#Retrieve new password for request next time
+			new_password = resp.getheader('np')
+
+			if new_password is not None:
+				self.password = new_password
+				self.save()
+			print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, self.password, self.name, method)
+		finally:
+			con.close()
+		return resp
+
+	def send_notification(self, me, notification):
+		return self.get_from_friend('/notifications/', me, method='POST', variables=notification)
+
 	def __str__(self):
 		return "{0}@{1}".format(self.name, self.address)
 
@@ -107,6 +131,9 @@ class NotificationType(models.Model):
 	name = models.CharField(max_length=32)
 	objtype = models.CharField(max_length=32)
 	title = models.CharField(max_length=64)
+
+	def __str__(self):
+		return 'NotificationType: %s about %s' % (self.name, self.objtype)
 
 class Notification(models.Model):
 	notification_type = models.ForeignKey(NotificationType)

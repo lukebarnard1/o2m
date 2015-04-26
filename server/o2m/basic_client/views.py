@@ -21,7 +21,7 @@ def get_authenticated_link(source_address, me, friend):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
-	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, friend.address, friend.port)
+	# print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, friend.address, friend.port)
 	try:
 		con = httplib.HTTPConnection(friend.address, friend.port)
 		con.request(method, get_authenticated_link(source_address, me, friend), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
@@ -33,7 +33,7 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		if new_password is not None:
 			friend.password = new_password
 			friend.save()
-		print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name, method)
+		# print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name, method)
 	finally:
 		con.close()
 	return resp
@@ -80,7 +80,7 @@ class TimelineView(TemplateView):
 	def get_context_data(self, **kwargs):
 
 		me = Friend.objects.get(name=o2m.settings.ME)
-		print "(Client)Me:",me
+		# print "(Client)Me:",me
 
 		source_address = '/timeline'
 
@@ -107,7 +107,7 @@ class TimelineView(TemplateView):
 				print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
 
 			if resp is not None :
-				print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
+				# print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
 				if resp.status == 200: 
 					content = resp.read()
 					links_from_friend = json.loads(content)
@@ -150,9 +150,7 @@ class TimelineView(TemplateView):
 		links = get_children_indented(timeline)
 
 		for link in links:
-			print link['friend']
 			friend = Friend.objects.get(address = link['friend']['address'], port = link['friend']['port'])
-			print friend
 			try:
 				link['html'] = link_to_html(link, friend, me)
 			except:
@@ -198,7 +196,6 @@ def add_content(request):
 	"""Adds content to the server belonging to 'me' whilst also sending a new link to the friend
 	specified in the POST variables
 	"""
-	print '(Client)',request.POST
 	friend_address = request.POST['friend_address']
 	friend_port = request.POST['friend_port']
 	content_text = request.POST['content_text']
@@ -272,7 +269,6 @@ class NotificationView(TemplateView):
 		if resp is not None:
 			if resp.status == 200:
 				notifications = json.loads(resp.read())
-				print notifications
 
 				return {'notifications' : notifications,
 						'me' : model_to_dict(me)}
