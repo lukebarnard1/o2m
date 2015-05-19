@@ -133,7 +133,7 @@ class NotificationType(models.Model):
 	title = models.CharField(max_length=64)
 
 	def __str__(self):
-		return 'NotificationType: %s about %s' % (self.name, self.objtype)
+		return 'NotificationType: %s about %s' % (self.name, self.obj_type)
 
 class Notification(models.Model):
 	notification_type = models.ForeignKey(NotificationType)

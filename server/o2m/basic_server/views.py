@@ -128,13 +128,15 @@ class TimelineView(AuthenticatedView):
 		
 		return response
 
-def notify(me, notification_type, obj, receiver):
+def notify(me, notification_type, creator, obj, receiver):
 	notification = {
 		'notification_type': notification_type, 
-		'objid': obj.id
+		'obj_id': obj.id,
+		'obj_creator': creator.name,
 	}
 
-	receiver.send_notification(me, notification)
+	response = receiver.send_notification(me, notification)
+	print response.reason
 
 class LinkView(JSONView):
 
@@ -159,7 +161,7 @@ class LinkView(JSONView):
 		"""Notify the owner of a node that someone has added
 		content as a descendant of it."""
 
-		notify(me, 'content_add', friend_posting, node.friend)
+		notify(me, 'Reply to post', friend_posting, node, node.friend)
 
 		if node.parent:
 			self.notify_content_owners(me, node.parent, friend_posting)
@@ -284,8 +286,6 @@ class NotificationView(AuthenticatedView):
 
 		for n in notifications:
 			import models
-			
-			n.creator = Friend.objects.get(pk=n.obj_creator)
 
 			n_dict = {
 				'title': n.notification_type.title.format(
@@ -312,10 +312,10 @@ class NotificationView(AuthenticatedView):
 		notification['notification_type'] = NotificationType.objects.get(name=notification['notification_type'][0])
 		notification['obj_server'] = Friend.objects.get(name=request.user.username)
 		try:
-			notification['obj_creator'] = Friend.objects.get(pk=notification['obj_creator'][0])
-		except:
+			notification['obj_creator'] = Friend.objects.get(name=notification['obj_creator'][0])
+		except Exception as e:
 			response = HttpResponse('Cannot notify - not friends')
-			response.reason_phrase = 'Cannot notify - not friends'
+			response.reason_phrase = 'Cannot notify - not friends (%s)' % e
 			response.status_code = 401
 			return response
 		notification['obj_id'] = notification['obj_id'][0]
