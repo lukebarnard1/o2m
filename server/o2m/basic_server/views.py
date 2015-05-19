@@ -284,9 +284,8 @@ class NotificationView(AuthenticatedView):
 
 		for n in notifications:
 			import models
-			ObjectModel = getattr(models, n.notification_type.objtype)
-
-			n.object = ObjectModel.objects.get(pk=n.objid)
+			
+			n.creator = Friend.objects.get(pk=n.obj_creator)
 
 			n_dict = {
 				'title': n.notification_type.title.format(
