@@ -3,55 +3,70 @@
 {% load humanize %}
 {% block body %}
 <div class="container">
-	<form action="/o2m/add_content" method="POST">
-		{% csrf_token %}
-		{% bootstrap_form post_form %}
-		<input type="hidden" value="1" name="content_id">
-		<input type="hidden" value="{{me.address}}" name="friend_address">
-		<input type="hidden" value="{{me.port}}" name="friend_port">
-	</form>
-	<ul class="media-list">
-	{% for link in links %}
-		<li class="content media">
-			{% for level in link.level %}<div class="media-left"></div>{% endfor %}
-			<div class="media-body panel panel-default">
-				<div class="panel-heading">
-					{{link.friend.name}} posted this {{link.creation_time | naturaltime}}
-					<div class="pull-right">
-						<form action="/o2m/delete_link" method="POST">
-							{% csrf_token %}
-							<input type="hidden" name="content_id" value="{{link.content}}"/>
-							<input type="hidden" name="friend_id" value="{{link.friend.id}}"/>
-							<a href="javascript:;" onclick="submit()" title="Delete link">
-								<span class="glyphicon glyphicon-remove"></span>
-							</a>
-						</form>
-					</div>
-				</div>
-				<div class="panel-body">
-					{{link.html | safe}}
-					<div class="pull-right">
-						<form action="/o2m/delete_content" method="POST">
-							{% csrf_token %}
-							<input type="hidden" name="content_id" value="{{link.content}}"/>
-							<a href="javascript:;" onclick="submit()" title="Delete content">
-								<span class="glyphicon glyphicon-remove"></span>
-							</a>
-						</form>
-					</div>
-				</div>
-				<div class="panel-footer">
-					<form action="/o2m/add_content" method="POST">
-						{% csrf_token %}
-						{% bootstrap_form comment_form %}
-						<input type="hidden" value="{{link.content}}" name="content_id">
-						<input type="hidden" value="{{link.address}}" name="friend_address">
-						<input type="hidden" value="{{link.port}}" name="friend_port">
-					</form>
-				</div>
+	<div class="row">
+		{% if friend %}
+		<div class="col-md-3">
+			<h3>{{friend.name}}</h3>
+			<div style='background-color:#ccc;height:200px;line-height:200px;text-align:center;font-weight:900'>
+				
+				**User Profile Pic Here**
 			</div>
-		</li>
-	{% endfor %}
-	</ul>
+		</div>
+		<div class="col-md-9">
+		{% else %}
+		<div class="col-md-12">
+		{% endif %}
+			<form action="/o2m/add_content" method="POST">
+				{% csrf_token %}
+				{% bootstrap_form post_form %}
+				<input type="hidden" value="1" name="content_id">
+				<input type="hidden" value="{{me.address}}" name="friend_address">
+				<input type="hidden" value="{{me.port}}" name="friend_port">
+			</form>
+			<ul class="media-list">
+			{% for link in links %}
+				<li class="content media">
+					{% for level in link.level %}<div class="media-left"></div>{% endfor %}
+					<div class="media-body panel panel-default">
+						<div class="panel-heading">
+							{{link.friend.name}} posted this {{link.creation_time | naturaltime}}
+							<div class="pull-right">
+								<form action="/o2m/delete_link" method="POST">
+									{% csrf_token %}
+									<input type="hidden" name="content_id" value="{{link.content}}"/>
+									<input type="hidden" name="friend_id" value="{{link.friend.id}}"/>
+									<a href="javascript:;" onclick="submit()" title="Delete link">
+										<span class="glyphicon glyphicon-remove"></span>
+									</a>
+								</form>
+							</div>
+						</div>
+						<div class="panel-body">
+							{{link.html | safe}}
+							<div class="pull-right">
+								<form action="/o2m/delete_content" method="POST">
+									{% csrf_token %}
+									<input type="hidden" name="content_id" value="{{link.content}}"/>
+									<a href="javascript:;" onclick="submit()" title="Delete content">
+										<span class="glyphicon glyphicon-remove"></span>
+									</a>
+								</form>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<form action="/o2m/add_content" method="POST">
+								{% csrf_token %}
+								{% bootstrap_form comment_form %}
+								<input type="hidden" value="{{link.content}}" name="content_id">
+								<input type="hidden" value="{{link.address}}" name="friend_address">
+								<input type="hidden" value="{{link.port}}" name="friend_port">
+							</form>
+						</div>
+					</div>
+				</li>
+			{% endfor %}
+			</ul>
+		</div>
+	</div>
 </div>
 {% endblock %}

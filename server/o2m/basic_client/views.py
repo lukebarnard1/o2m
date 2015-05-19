@@ -144,7 +144,7 @@ class TimelineView(TemplateView):
 			flat_children = []
 
 			for link in children:
-				link['level'] = range(level + 1)
+				link['level'] = range(level)
 				flat_children.append(link)
 				if len(link['children']):
 					flat_children.extend(get_children_indented(link['children'], level = level + 1))
@@ -289,6 +289,13 @@ class FriendView(TimelineView):
 
 	def get_friends_included(self):
 		return [Friend.objects.get(name=self.friend_name)]
+
+	def get_context_data(self, **kwargs):
+		context = super(FriendView, self).get_context_data(**kwargs)
+
+		context.update(friend = {'name': self.friend_name})
+
+		return context
 
 def friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
