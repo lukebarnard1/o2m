@@ -33,6 +33,7 @@ SECRET_KEY = 'n12vt%cf1iqv3*swjy6n)!=(y^+5@wzc0j+a8-izl8a)kmx0o5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+DEBUG_PROPAGATE_EXCEPTIONS = DEBUG
 
 TEMPLATE_DEBUG = True
 
