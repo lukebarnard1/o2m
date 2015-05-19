@@ -77,6 +77,13 @@ class TimelineView(TemplateView):
 	class PostForm(forms.Form):
 	    content_text = forms.CharField(label='Post')
 
+	def get_friends_included(self):
+		if self.just_me:
+			friends = [Friend.objects.filter()[0]]
+		else:
+			friends = Friend.objects.filter()
+		return friends
+
 	def get_context_data(self, **kwargs):
 
 		me = Friend.objects.get(name=o2m.settings.ME)
@@ -84,10 +91,7 @@ class TimelineView(TemplateView):
 
 		source_address = '/timeline'
 
-		if self.just_me:
-			friends = [Friend.objects.filter()[0]]
-		else:
-			friends = Friend.objects.filter()
+		friends = self.get_friends_included()
 
 		timeline = []
 
@@ -277,5 +281,16 @@ class NotificationView(TemplateView):
 
 def notifications(request):
 	return NotificationView.as_view()(request)
+
+
+class FriendView(TimelineView):
+	
+	friend_name = None
+
+	def get_friends_included(self):
+		return [Friend.objects.get(name=self.friend_name)]
+
+def friend(request, **kwargs):
+	return FriendView.as_view(**kwargs)(request)
 
 
