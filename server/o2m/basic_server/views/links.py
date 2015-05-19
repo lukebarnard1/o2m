@@ -1,7 +1,6 @@
 
 from django.http import HttpResponse
 import o2m
-from ..views import notify
 from json_view import JSONView
 from ..models import Link, Friend
 
@@ -28,7 +27,7 @@ class LinkView(JSONView):
 		"""Notify the owner of a node that someone has added
 		content as a descendant of it."""
 
-		notify(me, 'Reply to post', friend_posting, node, node.friend)
+		node.friend.send_notification(me, notification_type='Reply to post', obj_id=node.id, obj_creator=friend_posting.name)
 
 		if node.parent:
 			self.notify_content_owners(me, node.parent, friend_posting)

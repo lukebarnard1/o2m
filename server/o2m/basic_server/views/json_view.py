@@ -2,14 +2,13 @@
 import json
 
 from django.http import HttpResponse
-from ..views import dict_for_node
 from auth import AuthenticatedView
 
 def json_for_node(node):
 	if node is None:
 		return ''
 	else:
-		return json.dumps(dict_for_node(node), indent=4)
+		return json.dumps(node.dict_for_node(), indent=4)
 
 class JSONView(AuthenticatedView):
 

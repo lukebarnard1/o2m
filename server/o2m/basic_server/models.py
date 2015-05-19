@@ -62,8 +62,9 @@ class Friend(models.Model):
 			con.close()
 		return resp
 
-	def send_notification(self, me, notification):
-		return self.get_from_friend('/notifications/', me, method='POST', variables=notification)
+	def send_notification(self, me, notification_type, obj_id, obj_creator):
+		return self.get_from_friend('/notifications/', me, method='POST',\
+			variables={'notification_type':notification_type, 'obj_id':obj_id, 'obj_creator':obj_creator})
 
 	def __str__(self):
 		return "{0}@{1}".format(self.name, self.address)
@@ -96,6 +97,19 @@ class Link(mptt.models.MPTTModel):
 	friend = models.ForeignKey(Friend) # (Could be yourself)
 	creation_time = models.DateTimeField(auto_now_add=True)
 	content = models.BigIntegerField() # (Could be your own)
+
+	def dict_for_node(self):
+		result = model_to_dict(self)
+		result['creation_time'] = self.creation_time.__str__()
+
+		result['friend'] = model_to_dict(Friend.objects.get(pk=result['friend']))
+		
+		del result['friend']['password']
+		del result['parent']
+
+		result['children'] = [child.dict_for_node() for child in self.get_children().order_by('-creation_time')]
+
+		return result
 
 	def to_json(self):
 

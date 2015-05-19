@@ -2,7 +2,6 @@
 import json
 
 from django.http import HttpResponse
-from ..views import dict_for_node
 from auth import AuthenticatedView
 from ..models import Link
 
@@ -16,7 +15,7 @@ class TimelineView(AuthenticatedView):
 		timeline_dicts = []
 
 		for post in timeline:
-			timeline_dicts.append(dict_for_node(post))
+			timeline_dicts.append(post.dict_for_node())
 			
 		response.content = json.dumps(timeline_dicts)
 
