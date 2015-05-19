@@ -37,7 +37,7 @@ def read_file(file_path):
 
 class Friend(models.Model):
 	name = models.CharField(max_length=128)
-	address = models.IPAddressField()
+	address = models.GenericIPAddressField()
 	port = models.IntegerField(default=8000)
 	password = models.CharField(max_length=32)
 
@@ -94,7 +94,7 @@ class Content(models.Model):
 class Link(mptt.models.MPTTModel):
 	parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
 	friend = models.ForeignKey(Friend) # (Could be yourself)
-	creation_time = models.DateTimeField(default=datetime.now, auto_now_add=True)
+	creation_time = models.DateTimeField(auto_now_add=True)
 	content = models.BigIntegerField() # (Could be your own)
 
 	def to_json(self):
@@ -139,8 +139,8 @@ class Notification(models.Model):
 	notification_type = models.ForeignKey(NotificationType)
 
 	# The server that obj exists on
-	obj_server = models.ForeignKey(Friend)
+	obj_server = models.ForeignKey(Friend, related_name='server')
 	# The one who generated the notification or the creator of the object it refers to
-	obj_creator = models.ForeignKey(Friend)
+	obj_creator = models.ForeignKey(Friend, related_name='creator')
 	# The ID of the object on the server
 	obj_id = models.BigIntegerField()
