@@ -140,7 +140,7 @@ class Notification(models.Model):
 
 	# The server that obj exists on
 	obj_server = models.ForeignKey(Friend)
-	# The one who generated the notification
+	# The one who generated the notification or the creator of the object it refers to
 	obj_creator = models.ForeignKey(Friend)
 	# The ID of the object on the server
 	obj_id = models.BigIntegerField()

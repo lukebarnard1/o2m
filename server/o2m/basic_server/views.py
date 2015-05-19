@@ -276,6 +276,7 @@ class NotificationView(AuthenticatedView):
 		return request.method == 'GET'
 
 	def get(self, request):
+		"""Respond with all of the notifications on this server"""
 		response = HttpResponse()
 		notifications = Notification.objects.all()
 
@@ -300,17 +301,25 @@ class NotificationView(AuthenticatedView):
 		return response
 
 	def post(self, request):
+		"""Notify the owner of this server of something"""
 		response = HttpResponse()
 		notification = dict(request.POST)
 
 		notif_keys = notification.keys()
 
-		if notif_keys == ['objid', 'notification_type']:
-			raise Exception('You must provide objid and notification_type')
+		if not all(n in notif_keys for n in ['obj_id', 'obj_creator', 'notification_type']):
+			raise Exception('You must provide obj_id, obj_creator and notification_type')
 
-		notification['friend'] = Friend.objects.get(name=request.user.username)
-		notification['objid'] = notification['objid'][0]
 		notification['notification_type'] = NotificationType.objects.get(name=notification['notification_type'][0])
+		notification['obj_server'] = Friend.objects.get(name=request.user.username)
+		try:
+			notification['obj_creator'] = Friend.objects.get(pk=notification['obj_creator'][0])
+		except:
+			response = HttpResponse('Cannot notify - not friends')
+			response.reason_phrase = 'Cannot notify - not friends'
+			response.status_code = 401
+			return response
+		notification['obj_id'] = notification['obj_id'][0]
 
 		Notification.objects.create(**notification)
 
