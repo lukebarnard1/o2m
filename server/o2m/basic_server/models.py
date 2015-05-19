@@ -129,7 +129,7 @@ class Link(mptt.models.MPTTModel):
 
 class NotificationType(models.Model):
 	name = models.CharField(max_length=32)
-	objtype = models.CharField(max_length=32)
+	obj_type = models.CharField(max_length=32)
 	title = models.CharField(max_length=64)
 
 	def __str__(self):
