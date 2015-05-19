@@ -137,5 +137,10 @@ class NotificationType(models.Model):
 
 class Notification(models.Model):
 	notification_type = models.ForeignKey(NotificationType)
-	friend = models.ForeignKey(Friend)
-	objid = models.BigIntegerField()
+
+	# The server that obj exists on
+	obj_server = models.ForeignKey(Friend)
+	# The one who generated the notification
+	obj_creator = models.ForeignKey(Friend)
+	# The ID of the object on the server
+	obj_id = models.BigIntegerField()
