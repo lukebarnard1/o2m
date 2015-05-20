@@ -63,4 +63,14 @@ class NotificationView(View):
 		Notification.objects.create(**notification)
 		print '(Server)You have a new notification!'
 
+		if notification['notification_type'] == 'Friend request':
+			print '\tAnd it\'s a friend request. Checking to see if a request has been sent...'
+			new_friend = Friend.objects.get(name = notification['obj_creator'][0])
+
+			if new_friend.password == 'NOTFRIENDS':
+				print '\tYes, a request has been sent...'
+				new_user = User.objects.create_user(new_friend.name, password=new_friend.password)
+				new_user.save()
+
+
 		return response
