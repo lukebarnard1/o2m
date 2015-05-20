@@ -79,15 +79,13 @@ class TimelineView(TemplateView):
 
 	def get_friends_included(self):
 		if self.just_me:
-			friends = [Friend.objects.filter()[0]]
+			friends = [Friend.objects.get(name=o2m.settings.ME)]
 		else:
 			friends = Friend.objects.filter()
 		return friends
 
 	def get_context_data(self, **kwargs):
-
 		me = Friend.objects.get(name=o2m.settings.ME)
-		# print "(Client)Me:",me
 
 		source_address = '/timeline'
 
@@ -111,7 +109,6 @@ class TimelineView(TemplateView):
 				print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
 
 			if resp is not None :
-				# print "(Client)Got {0} '{1}' whilst accessing {2}".format(resp.status, resp.reason, friend.name)
 				if resp.status == 200: 
 					content = resp.read()
 					links_from_friend = json.loads(content)
@@ -286,18 +283,54 @@ def notifications(request):
 class FriendView(TimelineView):
 	
 	friend_name = None
+	friend_ip = None
+	friend_port = None
 
 	def get_friends_included(self):
-		return [Friend.objects.get(name=self.friend_name)]
+		fs = Friend.objects.filter(name=self.friend_name)
+
+		if len(fs) == 0:
+			f = None
+		else:
+			f = fs[0]
+
+		if f is None:
+			if not ((self.friend_ip is None) or (self.friend_port is None)):
+				existing = Friend.objects.filter(name = self.friend_name, address = self.friend_ip, port = self.friend_port)
+				already_exists = len(existing) > 0
+
+				if not already_exists:
+					new_friend = Friend.objects.create(name = self.friend_name, address = self.friend_ip, port = self.friend_port, password = 'NOTFRIENDS')
+					new_friend.save()
+					self.friend = new_friend
+					return [new_friend]
+				else:
+					self.friend = existing[0]
+					return [existing[0]]
+			raise Exception('Friend unknown, supply ip and port to non_friend endpoint')
+		else:
+			self.friend = f
+			return [f]
 
 	def get_context_data(self, **kwargs):
 		context = super(FriendView, self).get_context_data(**kwargs)
-
-		context.update(friend = {'name': self.friend_name})
+		context.update(friend = self.friend, non_friend = (self.friend.password == 'NOTFRIENDS'))
 
 		return context
 
 def friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
+
+def non_friend(request, **kwargs):
+	return FriendView.as_view(**kwargs)(request)
+
+def add_friend(request, friend_name, friend_ip, friend_port):
+	me = Friend.objects.get(name=o2m.settings.ME)
+
+	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
+
+	friend.send_notification(me, 'Friend request', -1, me)
+
+	return redirect('/o2m/friend/%s' % friend.name)
 
 

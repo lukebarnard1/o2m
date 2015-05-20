@@ -11,6 +11,12 @@
 				
 				**User Profile Pic Here**
 			</div>
+			{% if non_friend %}
+				We're not friends D:<br>
+				<a href="/o2m/add_friend/{{friend.name}}@{{friend.address}}:{{friend.port}}">Click here to request to be friends</a>
+			{% else %}
+				We're friends ;)
+			{% endif %}
 		</div>
 		<div class="col-md-9">
 		{% else %}
