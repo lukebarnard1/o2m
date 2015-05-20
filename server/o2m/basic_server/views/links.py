@@ -64,7 +64,7 @@ class LinkView(JSONView):
 		link.parent = parent
 		link.save()
 
-		me = Friend.objects.get(name=o2m.settings.ME)
+		me = Friend.objects.get(name=request.user.username)
 
 		if parent:
 			self.notify_content_owners(me, parent, friend)

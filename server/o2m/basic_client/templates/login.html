@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block body %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-4"></div>
+		<div class="col-md-4">
+			Please login
+			<form action="/o2m/login_user" method="POST">
+				{% csrf_token %}
+				{% bootstrap_form login_form %}
+				<input type="submit"/>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -6,15 +6,20 @@ import settings
 urlpatterns = patterns('',
     
     # Front end
+    url(r'^o2m/login$', 'basic_client.views.login_view'),
     url(r'^o2m/home$', 'basic_client.views.home'), #Displays your own content tree
     url(r'^o2m/timeline$', 'basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/friend/(?P<friend_name>[^\@\:]*)$', 'basic_client.views.friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/non_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'basic_client.views.non_friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/add_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'basic_client.views.add_friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/notifications$', 'basic_client.views.notifications'), #Displays a timeline view of all of your friends/timelines
+    
     url(r'^o2m/add_content$', 'basic_client.views.add_content'), #Adds content to your server and a link to the friend specified
     url(r'^o2m/delete_content$', 'basic_client.views.delete_content'),
     url(r'^o2m/delete_link$', 'basic_client.views.delete_link'),
+    url(r'^o2m/username$', 'basic_client.views.username'),
+    url(r'^o2m/login_user$', 'basic_client.views.login_user'),
+
     # Back end
 
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
@@ -24,6 +29,7 @@ urlpatterns = patterns('',
         'document_root': settings.EXTRA_ROOT,
     }),
     url(r'^admin/', include(admin.site.urls)),
+    url('^', include('django.contrib.auth.urls')),
 
     url(r'^posts$', 'basic_server.views.posts'),
     url(r'^timeline$', 'basic_server.views.timeline'),

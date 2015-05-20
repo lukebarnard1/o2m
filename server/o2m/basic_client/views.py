@@ -6,7 +6,7 @@ import dateutil.parser
 
 from django import forms
 from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 from basic_server.models import Link, Content, Friend
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect
@@ -21,7 +21,7 @@ def get_authenticated_link(source_address, me, friend):
 	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
-	# print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, friend.address, friend.port)
+	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, friend.address, friend.port)
 	try:
 		con = httplib.HTTPConnection(friend.address, friend.port)
 		con.request(method, get_authenticated_link(source_address, me, friend), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
@@ -65,33 +65,55 @@ def link_to_html(link, friend, me):
 	else:
 		return 'Error fetching content: {0} {1}'.format(resp.status, resp.reason)
 
-class TimelineView(TemplateView):
+class AuthenticatedView(View):
+
+	def dispatch(self, request, *args, **kwargs):
+		self.username = request.user.username
+
+		print '(Client)Logged in as %s' % self.username
+
+		if self.username == '':
+			print '(Client)User needs to login'
+			return redirect('/o2m/login')
+
+		return super(AuthenticatedView, self).dispatch(request, *args, **kwargs)
+
+class TimelineView(AuthenticatedView, TemplateView):
 	template_name = "timeline.html"
 
 	#Whether the posts are mine or my friends as well
 	just_me = False
 
+	#Taken from the request
+	username = None
+
 	class CommentForm(forms.Form):
-	    content_text = forms.CharField(label='Comment', max_length=128)
+		content_text = forms.CharField(label='Comment', max_length=128)
 	
 	class PostForm(forms.Form):
-	    content_text = forms.CharField(label='Post')
+		content_text = forms.CharField(label='Post')
+
+	class ChangeUsernameForm(forms.Form):
+		username = forms.CharField(label='Username')
+
 
 	def get_friends_included(self):
 		if self.just_me:
-			friends = [Friend.objects.get(name=o2m.settings.ME)]
+			friends = [Friend.objects.get(name=self.username)]
 		else:
 			friends = Friend.objects.filter()
 		return friends
 
 	def get_context_data(self, **kwargs):
-		me = Friend.objects.get(name=o2m.settings.ME)
+		me = Friend.objects.get(name=self.username)
 
 		source_address = '/timeline'
 
 		friends = self.get_friends_included()
 
 		timeline = []
+
+		should_change_username = False
 
 		def assign_links_address(links):
 			for link in links:
@@ -116,6 +138,14 @@ class TimelineView(TemplateView):
 					links_from_friend = assign_links_address(links_from_friend)
 
 					timeline.extend(links_from_friend)
+				elif resp.reason == 'Need to change username' and friend == me:
+					should_change_username = True
+
+		if should_change_username:
+			self.template_name = "change_username.html"
+			return {
+				'change_username_form': self.ChangeUsernameForm()
+			}
 
 		def newest_first(a, b):
 			t1 = dateutil.parser.parse(a['creation_time'])
@@ -170,11 +200,12 @@ def home(request):
 def timeline(request):
 	return TimelineView.as_view()(request)
 
-def add_content_link(friend_address, friend_port, content_text, parent_id):
+def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 	"""Adds content 'content_text' to a html file on the local server 
 	and creates a row in the Content model which refers to it. Then
 	the friend is sent a link to this content."""
-	me = Friend.objects.get(name=o2m.settings.ME)
+
+	me = Friend.objects.get(name=me)
 	variables = {
 		'content_text': content_text
 	}
@@ -202,7 +233,9 @@ def add_content(request):
 	content_text = request.POST['content_text']
 	parent_id = request.POST['content_id']
 
-	resp = add_content_link(friend_address, friend_port, content_text, parent_id)
+	me = request.user.username
+
+	resp = add_content_link(me, friend_address, friend_port, content_text, parent_id)
 	
 	if resp.status == 200:
 		print "Success"
@@ -236,7 +269,7 @@ def delete_link(request):
 	deleted already, but it is also not necessary for it to have
 	been deleted.
 	"""
-	me = Friend.objects.get(name=o2m.settings.ME)
+	me = Friend.objects.get(name=request.user.username)
 	
 	content_id = request.POST['content_id']
 	friend_id = request.POST['friend_id']
@@ -253,19 +286,21 @@ def delete_link(request):
 		return HttpResponse(resp.read())
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
-class NotificationView(TemplateView):
+class NotificationView(AuthenticatedView, TemplateView):
 	template_name = "notifications.html"
 
 	def get_context_data(self, **kwargs):
-		me = Friend.objects.get(name=o2m.settings.ME)
+		me = Friend.objects.get(name=self.username)
 		print "(Client)Me:",me
 
 		source_address = '/notifications/'
 
+		resp = None
+
 		try:
 			resp = get_from_friend(source_address, me, me)
 		except Exception as e:
-			print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
+			print "Loading notifications data from {0} failed: {1}".format(me.name, e)
 
 		if resp is not None:
 			if resp.status == 200:
@@ -325,7 +360,7 @@ def non_friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
 
 def add_friend(request, friend_name, friend_ip, friend_port):
-	me = Friend.objects.get(name=o2m.settings.ME)
+	me = Friend.objects.get(name=request.user.username)
 
 	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
 
@@ -333,4 +368,50 @@ def add_friend(request, friend_name, friend_ip, friend_port):
 
 	return redirect('/o2m/friend/%s' % friend.name)
 
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
+# This should be in the SERVER
+def username(request):
+	new_username = request.POST['username']
 
+	# Update Friends table
+
+	me = Friend.objects.get(name=o2m.settings.DEFAULT_USERNAME)
+	me.name = new_username
+	me.save()
+
+	user = User.objects.get(username=o2m.settings.DEFAULT_USERNAME)
+	user.username = new_username
+	user.save()
+
+	logout(request)
+
+	return redirect('/o2m/login')
+
+class LoginView(TemplateView):
+	template_name = "login.html"
+
+	class LoginForm(forms.Form):
+		username = forms.CharField(label='Username', max_length=128)
+		password = forms.CharField(label='Password', max_length=32, widget=forms.PasswordInput)
+
+	def get_context_data(self, **kwargs):
+		return {'login_form': self.LoginForm()}
+
+def login_view(request, **kwargs):
+	return LoginView.as_view(**kwargs)(request)
+
+from django.contrib.auth import authenticate, login
+def login_user(request):
+	username = request.POST['username']
+	password = request.POST['password']
+	print '(Client)Authenticating %s %s' % (username, password)
+	user = authenticate(username=username, password=password) 
+	if user is not None:
+		if user.is_active:
+			login(request, user)
+			return redirect('/o2m/timeline')
+		else:
+			return HttpResponse('Not Registered (not active)')
+	else:
+		return HttpResponse('Not Registered')

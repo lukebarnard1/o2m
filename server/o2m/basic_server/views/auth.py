@@ -32,6 +32,12 @@ class AuthenticatedView(View):
 			response.status_code = 401
 			return response
 
+		if username == o2m.settings.DEFAULT_USERNAME:
+			change_username_response = HttpResponse('Need to change username')
+			change_username_response.reason_phrase = 'Need to change username'
+			change_username_response.status_code = 401
+			return change_username_response
+
 		print '(Server)Authenticating ' + username + ' with pw ' + password
 		user = authenticate(username=username, password=password)
 		if user is not None:
@@ -40,16 +46,17 @@ class AuthenticatedView(View):
 				print '(Server)Logging in...'
 				login(request, user)
 
-				if not self.must_be_owner(request) or username == o2m.settings.ME:
+				if not self.must_be_owner(request) or user.is_staff:
 					print '(Server)Dispatching...'
 					response = super(AuthenticatedView, self).dispatch(request, *args, **kwargs)
 
-					new_password = random_password()
+					if not user.is_staff:
+						new_password = random_password()
 
-					user.set_password(new_password)
-					user.save()
+						user.set_password(new_password)
+						user.save()
 
-					response['np'] = new_password
+						response['np'] = new_password
 				else:
 					response.reason_phrase = 'Only the owner can do that'
 					response.status_code = 401

@@ -18,7 +18,7 @@ MEDIA_URL = '/media/'
 
 EXTRA_ROOT = os.path.join(BASE_DIR, 'static')
 
-ME = 'Your_Username'
+DEFAULT_USERNAME = 'Your_Username'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
