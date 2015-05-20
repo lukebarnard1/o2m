@@ -2,8 +2,9 @@ import json
 from django.http import HttpResponse
 from ..models import Friend, Notification, NotificationType
 from auth import AuthenticatedView
+from django.views.generic import View
 
-class NotificationView(AuthenticatedView):
+class NotificationView(View):
 	def must_be_owner(self, request):
 		"""In order to view notifications, you must be the owner."""
 		return request.method == 'GET'
@@ -40,16 +41,26 @@ class NotificationView(AuthenticatedView):
 			raise Exception('You must provide obj_id, obj_creator and notification_type')
 
 		notification['notification_type'] = NotificationType.objects.get(name=notification['notification_type'][0])
-		notification['obj_server'] = Friend.objects.get(name=request.user.username)
 		try:
+			notification['obj_server'] = Friend.objects.get(name=request.GET['username'])
+		except Exception as e:
+			print 'Not friends. Adding as potential future friend'
+			new_friend = Friend.objects.create(name = request.GET['username'], address = request.META['REMOTE_ADDR'], port = 8000, password='NOTFRIENDS')
+			new_friend.save()
+			notification['obj_server'] = new_friend
+
+		try:
+			# notification['obj_creator'] = notification['obj_creator'][0]
 			notification['obj_creator'] = Friend.objects.get(name=notification['obj_creator'][0])
 		except Exception as e:
-			response = HttpResponse('Cannot notify - not friends')
-			response.reason_phrase = 'Cannot notify - not friends (%s)' % e
-			response.status_code = 401
-			return response
+			print 'Not friends. Adding notification creator as potential future friend'
+			new_friend = Friend.objects.create(name = notification['obj_creator'][0], address = '0.0.0.0', port = 8000, password='NOTFRIENDS')
+			new_friend.save()
+			notification['obj_creator'] = new_friend
+
 		notification['obj_id'] = notification['obj_id'][0]
 
 		Notification.objects.create(**notification)
+		print '(Server)You have a new notification!'
 
 		return response

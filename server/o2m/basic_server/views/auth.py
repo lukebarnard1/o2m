@@ -32,7 +32,7 @@ class AuthenticatedView(View):
 			response.status_code = 401
 			return response
 
-		print '(Server)Authenticating ' + username
+		print '(Server)Authenticating ' + username + ' with pw ' + password
 		user = authenticate(username=username, password=password)
 		if user is not None:
 			print '(Server)User authenticated as ' + username
