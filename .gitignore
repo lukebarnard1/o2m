@@ -1,5 +1,6 @@
 # o2m
 server/o2m/social/
+server/db.sqlite3
 
 # Mac
 .DS_STORE
