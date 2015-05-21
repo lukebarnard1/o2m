@@ -376,7 +376,7 @@ def add_friend(request, friend_name, friend_ip, friend_port):
 	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
 
 	if friend.password == 'REQUESTRECEIVED':
-		new_user = User.objects.create_user(friend.name, password=friend.password)
+		new_user = User.objects.create_user(friend.name, password='REQUESTSENT')
 		new_user.save()
 
 	friend.send_notification(me, 'Friend request', -1, me.name)
