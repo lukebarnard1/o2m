@@ -45,7 +45,7 @@ class NotificationView(View):
 			notification['obj_server'] = Friend.objects.get(name=request.GET['username'])
 		except Exception as e:
 			print 'Not friends. Adding as potential future friend'
-			new_friend = Friend.objects.create(name = request.GET['username'], address = request.META['REMOTE_ADDR'], port = 8000, password='')
+			new_friend = Friend.objects.create(name = request.GET['username'], address = request.META['REMOTE_ADDR'], port = 8000, password='NOTFRIENDS')
 			new_friend.save()
 			notification['obj_server'] = new_friend
 
@@ -54,7 +54,7 @@ class NotificationView(View):
 			notification['obj_creator'] = Friend.objects.get(name=notification['obj_creator'][0])
 		except Exception as e:
 			print 'Not friends. Adding notification creator as potential future friend'
-			new_friend = Friend.objects.create(name = notification['obj_creator'][0], address = '0.0.0.0', port = 8000, password='')
+			new_friend = Friend.objects.create(name = notification['obj_creator'][0], address = '0.0.0.0', port = 8000, password='NOTFRIENDS')
 			new_friend.save()
 			notification['obj_creator'] = new_friend
 
@@ -68,7 +68,7 @@ class NotificationView(View):
 			print '\tAnd it\'s a friend request. Checking to see if a request has been sent...'
 			new_friend = notification['obj_creator']
 
-			if new_friend.password == 'NOTFRIENDS':
+			if new_friend.password == 'REQUESTSENT':
 				print '\tYes, a request has been sent...'
 				new_user = User.objects.create_user(new_friend.name, password=new_friend.password)
 				new_user.save()

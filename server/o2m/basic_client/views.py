@@ -376,6 +376,8 @@ def add_friend(request, friend_name, friend_ip, friend_port):
 	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
 
 	friend.send_notification(me, 'Friend request', -1, me.name)
+	friend.password = 'REQUESTSENT'
+	friend.save()
 
 	return redirect('/o2m/friend/%s' % friend.name)
 
