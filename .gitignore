@@ -1,5 +1,5 @@
 # o2m
-server/o2m/social/
+o2m/social/
 *.sqlite3
 
 # Mac
