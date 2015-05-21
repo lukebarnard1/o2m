@@ -16,8 +16,11 @@
 			{% elif non_friend %}
 				We're not friends<br>
 				<a href="/o2m/add_friend/{{friend.name}}@{{friend.address}}:{{friend.port}}">Click here to request to be friends</a>
+			{% elif request_received %}
+				Friend request received!<br>
+				<a href="/o2m/add_friend/{{friend.name}}@{{friend.address}}:{{friend.port}}">Click here to accept</a>
 			{% else %}
-				We're friends &heart;
+				We're friends :)
 			{% endif %}
 		</div>
 		<div class="col-md-9">
