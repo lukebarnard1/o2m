@@ -65,7 +65,6 @@ class NotificationView(View):
 		
 		from django.contrib.auth.models import User
 		if notification['notification_type'].name == 'Friend request':
-			notification['obj_creator'].password = 'REQUESTRECEIVED'
 			print '\tAnd it\'s a friend request. Checking to see if a request has been sent...'
 			new_friend = notification['obj_creator']
 
@@ -73,6 +72,9 @@ class NotificationView(View):
 				print '\tYes, a request has been sent...'
 				new_user = User.objects.create_user(new_friend.name, password=new_friend.password)
 				new_user.save()
+			else:
+				notification['obj_creator'].password = 'REQUESTRECEIVED'
+				notification['obj_creator'].save()
 
 
 		return response
