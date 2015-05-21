@@ -45,7 +45,7 @@
 								<form action="/o2m/delete_link" method="POST">
 									{% csrf_token %}
 									<input type="hidden" name="content_id" value="{{link.content}}"/>
-									<input type="hidden" name="friend_id" value="{{link.friend.id}}"/>
+									<input type="hidden" name="friend_id" value="{{link.link_friend.id}}"/>
 									<a href="javascript:;" onclick="submit()" title="Delete link">
 										<span class="glyphicon glyphicon-remove"></span>
 									</a>

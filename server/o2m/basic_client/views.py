@@ -126,6 +126,7 @@ class TimelineView(AuthenticatedView, TemplateView):
 			for link in links:
 				link['address'] = friend.address
 				link['port'] = friend.port
+				link['link_friend'] = friend
 				if len(link['children']):
 					assign_links_address(link['children'])
 			return links
@@ -255,7 +256,7 @@ def add_content(request):
 def delete_content(request):
 	"""Deletes content from the server belonging to 'me'
 	"""
-	me = Friend.objects.get(name=o2m.settings.ME)
+	me = Friend.objects.get(name=request.user.username)
 	content_id = request.POST['content_id']
 
 	resp = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
