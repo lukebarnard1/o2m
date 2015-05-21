@@ -367,11 +367,15 @@ def non_friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
 
 def add_friend(request, friend_name, friend_ip, friend_port):
+	print '(Client)Adding friend:'
+	print '\tfriend_name: %s' % friend_name
+	print '\tfriend_ip: %s' % friend_ip
+	print '\tfriend_port: %s' % friend_port
 	me = Friend.objects.get(name=request.user.username)
 
 	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
 
-	friend.send_notification(me, 'Friend request', -1, me)
+	friend.send_notification(me, 'Friend request', -1, me.name)
 
 	return redirect('/o2m/friend/%s' % friend.name)
 
