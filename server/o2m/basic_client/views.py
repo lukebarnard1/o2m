@@ -356,7 +356,7 @@ class FriendView(TimelineView):
 
 	def get_context_data(self, **kwargs):
 		context = super(FriendView, self).get_context_data(**kwargs)
-		context.update(friend = self.friend, non_friend = (self.friend.password == 'NOTFRIENDS'))
+		context.update(friend = self.friend, non_friend = (self.friend.password == 'NOTFRIENDS'), request_sent = (self.friend.password == 'REQUESTSENT'))
 
 		return context
 

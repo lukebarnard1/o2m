@@ -11,11 +11,13 @@
 				
 				**User Profile Pic Here**
 			</div>
-			{% if non_friend %}
-				We're not friends D:<br>
+			{% if request_sent %}
+				A request has been sent
+			{% elif non_friend %}
+				We're not friends<br>
 				<a href="/o2m/add_friend/{{friend.name}}@{{friend.address}}:{{friend.port}}">Click here to request to be friends</a>
 			{% else %}
-				We're friends ;)
+				We're friends &heart;
 			{% endif %}
 		</div>
 		<div class="col-md-9">
