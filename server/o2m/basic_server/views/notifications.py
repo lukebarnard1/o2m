@@ -65,6 +65,7 @@ class NotificationView(View):
 		
 		from django.contrib.auth.models import User
 		if notification['notification_type'].name == 'Friend request':
+			notification['obj_creator'].password = 'REQUESTRECEIVED'
 			print '\tAnd it\'s a friend request. Checking to see if a request has been sent...'
 			new_friend = notification['obj_creator']
 
