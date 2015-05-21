@@ -1,28 +1,18 @@
 from setuptools import setup, find_packages
 setup(
-    name = "HelloWorld",
-    version = "0.1",
+    name = "O2M",
+    version = "0.2.0",
     packages = find_packages(),
-    scripts = ['say_hello.py'],
-
-    # Project uses reStructuredText, so ensure that the docutils get
-    # installed or upgraded on the target machine
-    install_requires = ['docutils>=0.3'],
 
     package_data = {
-        # If any package contains *.txt or *.rst files, include them:
-        '': ['*.txt', '*.rst'],
-        # And include any *.msg files found in the 'hello' package, too:
-        'hello': ['*.msg'],
+        '': ['*.db.sqlite3', '*.html'],
     },
 
     # metadata for upload to PyPI
-    author = "Me",
-    author_email = "me@example.com",
-    description = "This is an Example Package",
-    license = "PSF",
-    keywords = "hello world example examples",
-    url = "http://example.com/HelloWorld/",   # project home page, if any
-
-    # could also include long_description, download_url, classifiers, etc.
+    author = "Luke Barnard",
+    author_email = "luke.barnard99@gmail.com",
+    description = "One to Many - The Fully Distributed Secure Social Network",
+    license = "GNU GENERAL PUBLIC LICENSE",
+    keywords = "social network distributed",
+    url = "https://github.com/lukebarnard1/o2m",
 )
