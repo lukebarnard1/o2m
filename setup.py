@@ -12,7 +12,7 @@ setup(
     author = "Luke Barnard",
     author_email = "luke.barnard99@gmail.com",
     description = "One to Many - The Fully Distributed Secure Social Network",
-    license = "GNU GENERAL PUBLIC LICENSE",
+    license = "GNU GENERAL PUBLIC LICENSE v2",
     keywords = "social network distributed",
     url = "https://github.com/lukebarnard1/o2m",
 )
