@@ -11,8 +11,8 @@ setup(
 		'': ['*.html', '*.js', '*.css', '*.py'],
 	},
 	data_files = [
-		('/var/o2m',['o2m/db.sqlite3']),
-		('/var/o2m/social',[])
+		# ('/var/o2m',['o2m/db.sqlite3']),
+		# ('/var/o2m/social',[])
 		# ('',['LICENSE']),
 	],
 
