@@ -7,10 +7,7 @@
 		{% if friend %}
 		<div class="col-md-3">
 			<h3>{{friend.name}}</h3>
-			<div style='background-color:#ccc;height:200px;line-height:200px;text-align:center;font-weight:900'>
-				
-				**User Profile Pic Here**
-			</div>
+			<img class="img-responsive" src="http://{{me.address}}:{{me.port}}/o2m/friend/{{friend.name}}/content/{{friend.user_photo_content_id}}">
 			{% if request_sent %}
 				A request has been sent
 			{% elif non_friend %}
@@ -25,7 +22,11 @@
 		</div>
 		<div class="col-md-9">
 		{% else %}
-		<div class="col-md-12">
+		<div class="col-md-3">
+			<h1>{{me.name}}</h1>
+			<img class="img-responsive" src="http://{{me.address}}:{{me.port}}/o2m/friend/{{me.name}}/content/{{me.user_photo_content_id}}">
+		</div>
+		<div class="col-md-9">
 		{% endif %}
 			<form action="/o2m/add_content" method="POST">
 				{% csrf_token %}

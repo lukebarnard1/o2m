@@ -29,63 +29,30 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		print '(Client)Converting 127.0.0.1 to %s' % address
 
 	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, address, friend.port)
-	try:
-		con = httplib2.Http('cache')
+	
+	con = httplib2.Http('cache')
 
-		url = 'http://%s:%s%s' % (address, friend.port, get_authenticated_link(source_address, me, friend))
+	url = 'http://%s:%s%s' % (address, friend.port, get_authenticated_link(source_address, me, friend))
 
-		headers = {
-			#This should be base64 encoded
-			"Authorization": 'Basic %s:%s' % (me.name, friend.password),
-			"Content-type": "application/x-www-form-urlencoded",
-			"Accept": "text/plain"}
-		response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
-		
-		class Httplib2toHttplib(object):
+	headers = {
+		#This should be base64 encoded
+		"Authorization": 'Basic %s:%s' % (me.name, friend.password),
+		"Content-type": "application/x-www-form-urlencoded",
+		"Accept": "text/plain"}
+	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
 
-			content = ''
-
-			def __init__(self, response_headers, content):
-				self.content = content
-				self.reason = response_headers.reason
-				self.status = int(response_headers.status)
-
-				for k,v in response_headers.iteritems():
-					if k not in ['status']:
-						setattr(self, k, v)
-
-			def getheader(self, k):
-				k = k.lower()
-				try:
-					return getattr(self, k)
-				except AttributeError:
-					return None
-
-			def read(self):
-				return self.content
-
-		resp = Httplib2toHttplib(response_headers, content)
-
-		#Retrieve new password for request next time
-		new_password = resp.getheader('np')
-
-
-
-		if new_password is not None:
-			friend.password = new_password
-			friend.save()
-		# print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name, method)
-	except Exception as e:
-		raise e
-		# con.close()
-	return resp
+	# If there's a new password, update it for this friend
+	if 'np' in response_headers.keys():
+		friend.password = response_headers['np']
+		friend.save()
+	return response_headers, content
 
 def link_to_html(link, friend, me):
 	content_link = '/content/{0}'.format(link['content'])
 
-	resp = get_from_friend(content_link, friend, me)
+	response_headers, content = get_from_friend(content_link, friend, me)
 
-	content_type = resp.getheader('Content-Type')
+	content_type = response_headers['content-type']
 
 	"""
 	TODO: Should this be clientside? Yes... 
@@ -97,15 +64,15 @@ def link_to_html(link, friend, me):
 	- These cannot be linked to, but if they have timed out then they should be asked for again, otherwise just keep using them
 	"""
 
-	if resp.status == 200:
+	if response_headers['status'] == '200':
 		if content_type == 'text/html':
-			return resp.read()
+			return content
 		elif content_type.startswith('image'):
 			# This should not be used because the new password gets given to the browser, which does nothing with it!
 			# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
-			return '<img src="{0}" width="100">'.format('https://www.google.ch/images/srpr/logo11w.png')
+			return '<img src="http://%s:%s/o2m/friend/%s/content/%s" width="100">' % (me.address, me.port, friend.name, link['content'])
 	else:
-		return 'Error fetching content: {0} {1}'.format(resp.status, resp.reason)
+		return 'Error fetching content: {0} '.format(response_headers['status'])
 
 class AuthenticatedView(View):
 
@@ -167,24 +134,24 @@ class TimelineView(AuthenticatedView, TemplateView):
 			return links
 
 		for friend in friends:
-			resp = None
+			response_headers = None
 			try:
-				resp = get_from_friend(source_address, friend, me)
+				response_headers, content = get_from_friend(source_address, friend, me)
 			except Exception as e:
 				print "(Client)Loading timeline data from {0} failed: {1}".format(friend.name, e)
 			
-			if resp is not None :
-				if resp.status == 200:
-					content = resp.read()
+			if response_headers is not None :
+				if response_headers['status'] == '200':
 					links_from_friend = json.loads(content)
 
 					links_from_friend = assign_links_address(links_from_friend)
 
 					timeline.extend(links_from_friend)
-				elif resp.reason == 'Need to change username' and friend == me:
+				# elif resp.reason == 'Need to change username' and friend == me:
+				elif friend == me:
 					should_change_username = True
 			else:
-				print "(Client)There was no response from {0}: {1}".format(friend.name, e)
+				print "(Client)There was no response from {0}".format(friend.name)
 
 		if should_change_username:
 			self.template_name = "change_username.html"
@@ -234,8 +201,11 @@ class TimelineView(AuthenticatedView, TemplateView):
 
 		links = [link for link in links if link['html'] is not None]
 
+		me_dict = model_to_dict(me)
+		me_dict.update({'user_photo_content_id':1})
+
 		return {'links' : links,
-				'me' : model_to_dict(me),
+				'me' : me_dict,
 				'post_form' : self.PostForm(),
 				'comment_form' : self.CommentForm()}
 
@@ -257,10 +227,10 @@ def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 
 	content_id = random_content_name()
 
-	content_add_response = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', variables = variables)
+	response_headers, content = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', variables = variables)
 
-	if content_add_response.status == 200:
-		content_id = json.loads(content_add_response.read())['content_id']
+	if response_headers['status'] == '200':
+		content_id = json.loads(content)['content_id']
 
 		friend = Friend.objects.get(address = friend_address, port = friend_port)
 
@@ -280,14 +250,14 @@ def add_content(request):
 
 	me = request.user.username
 
-	resp = add_content_link(me, friend_address, friend_port, content_text, parent_id)
-	print type(resp.status)
-	if resp.status == 200:
+	response_headers, content = add_content_link(me, friend_address, friend_port, content_text, parent_id)
+	
+	if response_headers['status'] == '200':
 		print "Success"
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return HttpResponse(resp.read())
+		return HttpResponse(content)
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 def delete_content(request):
@@ -296,14 +266,14 @@ def delete_content(request):
 	me = Friend.objects.get(name=request.user.username)
 	content_id = request.POST['content_id']
 
-	resp = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
+	response_headers, content = get_from_friend('/content/{0}'.format(content_id), me, me, method = 'DELETE')
 
-	if resp.status == 200:
+	if response_headers['status'] == '200':
 		print "Success"
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return HttpResponse(resp.read())
+		return HttpResponse(content)
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 def delete_link(request):
@@ -321,14 +291,14 @@ def delete_link(request):
 
 	friend = Friend.objects.get(pk=friend_id)
 
-	resp = get_from_friend('/node/{0}'.format(content_id), friend, me, method = 'DELETE')
+	response_headers, content = get_from_friend('/node/{0}'.format(content_id), friend, me, method = 'DELETE')
 
-	if resp.status == 200:
+	if response_headers['status'] == '200':
 		print "Success"
 		return redirect('/o2m/timeline')
 	else:
 		print "Failure"
-		return HttpResponse(resp.read())
+		return HttpResponse(content)
 		#return redirect('/o2m/timeline?error={0}'.format(resp.reason))
 
 class NotificationView(AuthenticatedView, TemplateView):
@@ -340,21 +310,19 @@ class NotificationView(AuthenticatedView, TemplateView):
 
 		source_address = '/notifications/'
 
-		resp = None
+		response_headers = None
 
 		try:
-			resp = get_from_friend(source_address, me, me)
+			response_headers, content = get_from_friend(source_address, me, me)
 		except Exception as e:
 			print "Loading notifications data from {0} failed: {1}".format(me.name, e)
 
-		if resp is not None:
-			if resp.status == 200:
-				notifications = json.loads(resp.read())
+		if response_headers is not None:
+			if response_headers['status'] == '200':
+				notifications = json.loads(content)
 
 				return {'notifications' : notifications,
 						'me' : model_to_dict(me)}
-			else:
-				print resp.reason
 
 def notifications(request):
 	return NotificationView.as_view()(request)
@@ -394,12 +362,34 @@ class FriendView(TimelineView):
 
 	def get_context_data(self, **kwargs):
 		context = super(FriendView, self).get_context_data(**kwargs)
+
+		self.friend.user_photo_content_id = 1
+
 		context.update(friend = self.friend, non_friend = (self.friend.password == 'NOTFRIENDS'), request_sent = (self.friend.password == 'REQUESTSENT'), request_received = (self.friend.password == 'REQUESTRECEIVED'))
 
 		return context
 
 def friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
+
+def to_django_response(response_headers, content):
+	resp = HttpResponse(content)
+	for k,v in response_headers.iteritems():
+		try:
+			resp[k] = v
+		except Exception as e:
+			print '(Client[views.to_django_response])Ignoring %s = %s' % (k, v)
+	return resp
+
+def friend_content(request, friend_name, content_id):
+
+	me = Friend.objects.get(name=request.user.username)
+	friend = Friend.objects.get(name=friend_name)
+
+	source_address = '/content/%s' % content_id
+	
+	response_headers, content = get_from_friend(source_address, friend , me)
+	return to_django_response(response_headers, content)
 
 def non_friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
