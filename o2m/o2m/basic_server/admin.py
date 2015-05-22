@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from basic_server.models import Friend, Content, Link, Notification, NotificationType
+from o2m.basic_server.models import Friend, Content, Link, Notification, NotificationType
 
 admin.site.register(Friend)
 admin.site.register(Content)

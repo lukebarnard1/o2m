@@ -6,19 +6,19 @@ import settings
 urlpatterns = patterns('',
     
     # Front end
-    url(r'^o2m/login$', 'basic_client.views.login_view'),
-    url(r'^o2m/home$', 'basic_client.views.home'), #Displays your own content tree
-    url(r'^o2m/timeline$', 'basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
-    url(r'^o2m/friend/(?P<friend_name>[^\@\:]*)$', 'basic_client.views.friend'), #Displays a timeline view of all of your friends/timelines
-    url(r'^o2m/non_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'basic_client.views.non_friend'), #Displays a timeline view of all of your friends/timelines
-    url(r'^o2m/add_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'basic_client.views.add_friend'), #Displays a timeline view of all of your friends/timelines
-    url(r'^o2m/notifications$', 'basic_client.views.notifications'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/login$', 'o2m.basic_client.views.login_view'),
+    url(r'^o2m/home$', 'o2m.basic_client.views.home'), #Displays your own content tree
+    url(r'^o2m/timeline$', 'o2m.basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/friend/(?P<friend_name>[^\@\:]*)$', 'o2m.basic_client.views.friend'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/non_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'o2m.basic_client.views.non_friend'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/add_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'o2m.basic_client.views.add_friend'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/notifications$', 'o2m.basic_client.views.notifications'), #Displays a timeline view of all of your friends/timelines
     
-    url(r'^o2m/add_content$', 'basic_client.views.add_content'), #Adds content to your server and a link to the friend specified
-    url(r'^o2m/delete_content$', 'basic_client.views.delete_content'),
-    url(r'^o2m/delete_link$', 'basic_client.views.delete_link'),
-    url(r'^o2m/username$', 'basic_client.views.username'),
-    url(r'^o2m/login_user$', 'basic_client.views.login_user'),
+    url(r'^o2m/add_content$', 'o2m.basic_client.views.add_content'), #Adds content to your server and a link to the friend specified
+    url(r'^o2m/delete_content$', 'o2m.basic_client.views.delete_content'),
+    url(r'^o2m/delete_link$', 'o2m.basic_client.views.delete_link'),
+    url(r'^o2m/username$', 'o2m.basic_client.views.username'),
+    url(r'^o2m/login_user$', 'o2m.basic_client.views.login_user'),
 
     # Back end
 
@@ -31,10 +31,10 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url('^', include('django.contrib.auth.urls')),
 
-    url(r'^posts$', 'basic_server.views.posts'),
-    url(r'^timeline$', 'basic_server.views.timeline'),
-    url(r'^node/(?P<content_id>.*)$', 'basic_server.views.link'),
-    url(r'^content/(?P<content_id>[0-9]*)$', 'basic_server.views.content'),
-    url(r'^notifications/$', 'basic_server.views.notifications'),
+    url(r'^posts$', 'o2m.basic_server.views.posts'),
+    url(r'^timeline$', 'o2m.basic_server.views.timeline'),
+    url(r'^node/(?P<content_id>.*)$', 'o2m.basic_server.views.link'),
+    url(r'^content/(?P<content_id>[0-9]*)$', 'o2m.basic_server.views.content'),
+    url(r'^notifications/$', 'o2m.basic_server.views.notifications'),
 
 )

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-O2M_BASE = os.path.join(BASE_DIR, 'social')
+O2M_BASE = '/var/o2m/social'
 
 MEDIA_ROOT = O2M_BASE
 MEDIA_URL = '/media/'
@@ -51,8 +51,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
-    'basic_server',
-    'basic_client',
+    'o2m.basic_server',
+    'o2m.basic_client',
     'mptt',
     'django_mptt_admin',
     'bootstrap3'

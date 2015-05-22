@@ -29,6 +29,7 @@ class ContentView(AuthenticatedView):
 		print '(Server)Using content_id {0} for content filename (but not for the actual id yet)'.format(content_id)
 
 		try:
+			print '(Server)Writing new content file at "%s"' % content_file_name
 			f = open(content_file_name, 'w')
 			f.write(content_text)
 		except Exception as e:

@@ -1,0 +1,4 @@
+include LICENSE
+recursive-include o2m/o2m/basic_server/templates *
+recursive-include o2m/o2m/basic_client/templates *
+recursive-include o2m/static/lib *

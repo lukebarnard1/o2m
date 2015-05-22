@@ -7,7 +7,7 @@ import dateutil.parser
 from django import forms
 from django.http import HttpResponse
 from django.views.generic import TemplateView, View
-from basic_server.models import Link, Content, Friend
+from o2m.basic_server.models import Link, Content, Friend
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect
 import o2m, o2m.settings
