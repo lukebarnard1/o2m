@@ -78,11 +78,10 @@ class Content(models.Model):
 		"""
 		import datetime, time
 		from wsgiref.handlers import format_date_time
-		expires = datetime.timedelta(minutes=1) + datetime.datetime.today()
+		expires = datetime.timedelta(hours=1) + datetime.datetime.now()
 
 		r = HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
 		r['Expires'] = format_date_time(time.mktime(expires.timetuple()))
-		print r['Expires']
 
 		return r
 
