@@ -76,7 +76,15 @@ class Content(models.Model):
 	def get_http_response(self):
 		"""Returns a HttpResponse that will return the file of this content.
 		"""
-		return HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
+		import datetime, time
+		from wsgiref.handlers import format_date_time
+		expires = datetime.timedelta(minutes=1) + datetime.datetime.today()
+
+		r = HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
+		r['Expires'] = format_date_time(time.mktime(expires.timetuple()))
+		print r['Expires']
+
+		return r
 
 	@receiver(post_delete_signal)
 	def post_delete(sender, **kwargs):

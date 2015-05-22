@@ -24,12 +24,20 @@ class AuthenticatedView(View):
 		response = HttpResponse()
 
 		try:
-			username = request.GET['username']
-			password = request.GET['password']
+			# username = request.GET['username']
+			# password = request.GET['password']
+			auth = request.META['HTTP_AUTHORIZATION']
+			import re
+			m = re.search('Basic ([^\:]+):(.+)', auth)
 
-		except MultiValueDictKeyError as e:
-			response.reason_phrase = 'Give me username and password'
+			username = m.group(1)
+			password = m.group(2)
+
+		except Exception as e:
+			raise e
+			response.reason_phrase = 'Unauthorized'
 			response.status_code = 401
+			print 'Sending back Unauthorized'
 			return response
 
 		if username == o2m.settings.DEFAULT_USERNAME:

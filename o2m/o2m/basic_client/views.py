@@ -1,6 +1,6 @@
 
 
-import httplib, urllib
+import httplib2, urllib
 import json
 import dateutil.parser
 
@@ -18,7 +18,7 @@ def random_content_name():
 	return "".join([random.choice(string.digits) for i in xrange(8)])
 
 def get_authenticated_link(source_address, me, friend):
-	return source_address + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
+	return source_address# + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
 	address = friend.address
@@ -30,19 +30,54 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 
 	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, address, friend.port)
 	try:
-		con = httplib.HTTPConnection(address, friend.port)
-		con.request(method, get_authenticated_link(source_address, me, friend), urllib.urlencode(variables) ,{"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"})
-		resp = con.getresponse()
+		con = httplib2.Http('cache')
+
+		url = 'http://%s:%s%s' % (address, friend.port, get_authenticated_link(source_address, me, friend))
+
+		headers = {
+			#This should be base64 encoded
+			"Authorization": 'Basic %s:%s' % (me.name, friend.password),
+			"Content-type": "application/x-www-form-urlencoded",
+			"Accept": "text/plain"}
+		response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
+		
+		class Httplib2toHttplib(object):
+
+			content = ''
+
+			def __init__(self, response_headers, content):
+				self.content = content
+				self.reason = response_headers.reason
+				self.status = int(response_headers.status)
+
+				for k,v in response_headers.iteritems():
+					if k not in ['status']:
+						setattr(self, k, v)
+
+			def getheader(self, k):
+				k = k.lower()
+				try:
+					return getattr(self, k)
+				except AttributeError:
+					return None
+
+			def read(self):
+				return self.content
+
+		resp = Httplib2toHttplib(response_headers, content)
 
 		#Retrieve new password for request next time
 		new_password = resp.getheader('np')
+
+
 
 		if new_password is not None:
 			friend.password = new_password
 			friend.save()
 		# print "(Client){3}ing {0} has given the new password {1} to access {2}".format(source_address, friend.password, friend.name, method)
-	finally:
-		con.close()
+	except Exception as e:
+		raise e
+		# con.close()
 	return resp
 
 def link_to_html(link, friend, me):
@@ -136,10 +171,10 @@ class TimelineView(AuthenticatedView, TemplateView):
 			try:
 				resp = get_from_friend(source_address, friend, me)
 			except Exception as e:
-				print "Loading timeline data from {0} failed: {1}".format(friend.name, e)
-
+				print "(Client)Loading timeline data from {0} failed: {1}".format(friend.name, e)
+			
 			if resp is not None :
-				if resp.status == 200: 
+				if resp.status == 200:
 					content = resp.read()
 					links_from_friend = json.loads(content)
 
@@ -148,6 +183,8 @@ class TimelineView(AuthenticatedView, TemplateView):
 					timeline.extend(links_from_friend)
 				elif resp.reason == 'Need to change username' and friend == me:
 					should_change_username = True
+			else:
+				print "(Client)There was no response from {0}: {1}".format(friend.name, e)
 
 		if should_change_username:
 			self.template_name = "change_username.html"
@@ -244,7 +281,7 @@ def add_content(request):
 	me = request.user.username
 
 	resp = add_content_link(me, friend_address, friend_port, content_text, parent_id)
-	
+	print type(resp.status)
 	if resp.status == 200:
 		print "Success"
 		return redirect('/o2m/timeline')
