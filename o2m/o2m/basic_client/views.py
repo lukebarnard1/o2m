@@ -44,7 +44,7 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 	# If there's a new password, update it for this friend
 	if 'np' in response_headers.keys():
 		friend.password = response_headers['np']
-		friend.save()
+		friend.save()	
 	return response_headers, content
 
 def link_to_html(link, friend, me):
@@ -54,23 +54,13 @@ def link_to_html(link, friend, me):
 
 	content_type = response_headers['content-type']
 
-	"""
-	TODO: Should this be clientside? Yes... 
-
-	- Fetch the contents and store localy
-	- Assign a new CachedContent object and store in database
-	- Return http response based on newly cached content
-	- CachedContents stored in this way should have a TTL before they are fetched again (HTTP Cache header)
-	- These cannot be linked to, but if they have timed out then they should be asked for again, otherwise just keep using them
-	"""
-
 	if response_headers['status'] == '200':
 		if content_type == 'text/html':
 			return content
 		elif content_type.startswith('image'):
-			# This should not be used because the new password gets given to the browser, which does nothing with it!
-			# html += '<img src="{0}" width="100">'.format(get_authenticated_link(content_link, me, friend))
 			return '<img src="http://%s:%s/o2m/friend/%s/content/%s" width="100">' % (me.address, me.port, friend.name, link['content'])
+		else: 
+			return 'Error fetching content: unknown content type'
 	else:
 		return 'Error fetching content: {0} '.format(response_headers['status'])
 
@@ -202,7 +192,6 @@ class TimelineView(AuthenticatedView, TemplateView):
 		links = [link for link in links if link['html'] is not None]
 
 		me_dict = model_to_dict(me)
-		me_dict.update({'user_photo_content_id':1})
 
 		return {'links' : links,
 				'me' : me_dict,

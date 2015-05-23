@@ -40,6 +40,7 @@ class Friend(models.Model):
 	address = models.GenericIPAddressField()
 	port = models.IntegerField(default=8000)
 	password = models.CharField(max_length=32)
+	photo_content_id = models.IntegerField(default=1)
 
 	def get_authenticated_link(self, source_address, me):
 		return source_address + '?' + urllib.urlencode({'username':me.name, 'password': self.password})
