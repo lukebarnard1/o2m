@@ -28,7 +28,7 @@
 		</div>
 		<div class="col-md-9">
 		{% endif %}
-			<form action="/o2m/add_content" method="POST">
+			<form action="/o2m/add_linked_content" method="POST">
 				{% csrf_token %}
 				{% bootstrap_form post_form %}
 				<input type="hidden" value="1" name="content_id">
@@ -66,7 +66,7 @@
 							</div>
 						</div>
 						<div class="panel-footer">
-							<form action="/o2m/add_content" method="POST">
+							<form action="/o2m/add_linked_content" method="POST">
 								{% csrf_token %}
 								{% bootstrap_form comment_form %}
 								<input type="hidden" value="{{link.content}}" name="content_id">

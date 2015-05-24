@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block body %}
+<script>
+	function content_added(response) {
+		$('input[type="submit"]').value = 'Uploaded'
+
+	}
+
+	function add_content_to_server(content_add_form) {
+		$.ajax({
+			url: '/content/1234',
+			type: 'POST',
+			success: content_added,
+			error: function(response){console.log(response.status)},
+			data: new FormData(content_add_form),
+			cache: false,
+			contentType: false,
+			processData: false
+		});
+	}
+</script>
+<div class="container">
+	<div class="row">
+		<div class="col-md-4"></div>
+		<div class="col-md-4">
+			Please choose a file to upload
+			<form action="/content/" method="POST" enctype="multipart/form-data">
+				{% csrf_token %}
+				{% bootstrap_form content_add_form %}
+				<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('form')[0])"/>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

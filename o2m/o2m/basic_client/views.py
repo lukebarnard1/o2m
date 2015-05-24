@@ -20,7 +20,7 @@ def random_content_name():
 def get_authenticated_link(source_address, me, friend):
 	return source_address# + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
-def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
+def get_from_friend(source_address, friend , me, method = 'GET', variables = {}, file_for_upload = None):
 	address = friend.address
 	if address == '127.0.0.1':
 		import socket
@@ -37,9 +37,29 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 	headers = {
 		#This should be base64 encoded
 		"Authorization": 'Basic %s:%s' % (me.name, friend.password),
-		"Content-type": "application/x-www-form-urlencoded",
+		"Content-Type": "application/x-www-form-urlencoded",
 		"Accept": "text/plain"}
-	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
+
+	if file_for_upload is None:
+		response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
+	else:
+		file_data = file_for_upload.read()
+
+		import mimetypes
+		file_type = mimetypes.guess_type(file_for_upload.name)[0]
+		boundary = '------WebKitFormBoundary9R21pfny0Ox8thjF'
+		headers['Content-Type'] = "multipart/form-data; boundary=%s" % boundary
+		import base64
+		body = """%s
+Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"%s\"
+Content-Type: %s
+%s
+%s""" % (boundary, file_for_upload.name, file_type, base64.b64encode(file_data), boundary)
+
+		headers['content-length'] = str(len(body))
+
+		response_headers, content = con.request(url, method, headers = headers, body=body)
+
 
 	# If there's a new password, update it for this friend
 	if 'np' in response_headers.keys():
@@ -228,7 +248,7 @@ def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 		return content_add_response
 
 
-def add_content(request):
+def add_linked_content(request):
 	"""Adds content to the server belonging to 'me' whilst also sending a new link to the friend
 	specified in the POST variables
 	"""
@@ -454,3 +474,38 @@ def login_user(request):
 			return HttpResponse('Not Registered (not active)')
 	else:
 		return HttpResponse('Not Registered')
+
+class ContentAddView(TemplateView):
+	template_name = "content_add.html"
+
+	class ContentAddForm(forms.Form):
+		"""A simple form to add a file into the flat-storage of all
+		contents belonging to this user.
+		"""
+		file = forms.FileField()
+
+	def get_context_data(self, **kwargs):
+		return {'content_add_form': self.ContentAddForm()}
+
+# As suggested by the Django documentation here: https://docs.djangoproject.com/en/1.8/topics/http/file-uploads/
+def handle_uploaded_file(f):
+	with open('client_temp/%s' % f.name, 'wb+') as destination:
+		destination.write(f.read())
+
+def content_add_view(request, **kwargs):
+	return ContentAddView.as_view(**kwargs)(request)
+
+def add_content(request):
+	# Create a Content, but do not link it
+
+	me = Friend.objects.get(name=request.user.username)
+
+	# Uploaded here = uploaded to the CLIENT!
+	uploaded_file = request.FILES['file']
+	# handle_uploaded_file(uploaded_file)
+
+	content_id = random_content_name()
+
+	with uploaded_file as f:
+		response_headers, content = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', file_for_upload=f)
+

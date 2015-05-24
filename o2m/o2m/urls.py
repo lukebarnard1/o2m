@@ -14,8 +14,10 @@ urlpatterns = patterns('',
     url(r'^o2m/non_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'o2m.basic_client.views.non_friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/add_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'o2m.basic_client.views.add_friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/notifications$', 'o2m.basic_client.views.notifications'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/upload_content$', 'o2m.basic_client.views.content_add_view'), #Displays a timeline view of all of your friends/timelines
     
-    url(r'^o2m/add_content$', 'o2m.basic_client.views.add_content'), #Adds content to your server and a link to the friend specified
+    url(r'^o2m/add_linked_content$', 'o2m.basic_client.views.add_linked_content'), #Adds content to your server and a link to the friend specified
+    url(r'^o2m/add_content$', 'o2m.basic_client.views.add_content'), # Just adds content to your server
     url(r'^o2m/delete_content$', 'o2m.basic_client.views.delete_content'),
     url(r'^o2m/delete_link$', 'o2m.basic_client.views.delete_link'),
     url(r'^o2m/username$', 'o2m.basic_client.views.username'),
