@@ -41,11 +41,11 @@
 						})
 					}
 
-					function set_my_user_photo(content_id) {
+					function set_my_user_photo(content) {
 						function done(response) {
 							window.location = '/o2m/timeline'
 						}
-						update_friend('{{me.id}}', {'photo_content_id':content_id}, done)
+						update_friend('{{me.id}}', {'photo_content_id':content.id}, done)
 					}
 
 					function upload_new_display_picture() {

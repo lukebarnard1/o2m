@@ -22,19 +22,20 @@
 	</style>
 </head>
 <body>
-	<div id="select_content" class="modal modal-default fade" data-content-id="1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div id="select_content" class="modal modal-default fade" data-content="{}" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<script>
-			function set_selected(content_id) {
-				$('#select_content').data('content-id', content_id)
+			function set_selected(content) {
+				$('#file_name').val(content.file_path)
+				$('#select_content').data('content', content)
 				$('#existing a').removeClass("active")
-				$('#existing').find('#' + content_id + " a").addClass("active")
+				$('#existing').find('#' + content.id + " a").addClass("active")
 			}
 
 			function content_added(response) {
 				$('.btn.btn-success').val('Uploaded')
-				content_id = JSON.parse(response).content_id
+				content = JSON.parse(response).content
 				refresh_existing()
-				set_selected(content_id)
+				set_selected(content)
 			}
 
 			function html_content_link(content) {
@@ -45,7 +46,7 @@
 				link = $(document.createElement('a'))
 				link.attr('href', 'javascript:;')
 				link.on('click', function(){
-					set_selected(content.id)
+					set_selected(content)
 				})
 				link.addClass("thumbnail")
 
@@ -68,9 +69,20 @@
 			function populate_existing(response) {
 				existing = JSON.parse(response)
 
-				$("#existing").html("")
-				for (i = 0; i < existing.length; i++) {
-					$("#existing").append(html_content_link(existing[i]))
+				if (existing.length > 0) {
+					$("#existing").html("")
+					for (i = 0; i < existing.length; i++) {
+						$("#existing").append(html_content_link(existing[i]))
+					}
+					$("#existing").addClass("active")
+					$("#tab_existing").addClass("active")
+					$("#upload").removeClass("active")
+					$("#tab_upload").removeClass("active")
+				} else {
+					$("#upload").addClass("active")
+					$("#tab_upload").addClass("active")
+					$("#existing").removeClass("active")
+					$("#tab_existing").removeClass("active")
 				}
 			}
 
@@ -89,9 +101,9 @@
 
 				$("#select_content").modal('show');
 				$("#select_content").on('hide.bs.modal', function(){
-					content_id = $("#select_content").data('content-id')
-					if (content_id != 0) {
-						callback(content_id)
+					content = $("#select_content").data('content')
+					if (content) {
+						callback(content)
 					}
 				});
 			}
@@ -128,12 +140,12 @@
 				<div class="modal-body">
 					<div role="tabpanel">
 						<ul class="nav nav-tabs" role="tablist">
-							<li role="presentation" class="active">
+							<li id="tab_existing" role="presentation" class="active">
 								<a href="#existing" aria-controls="existing" role="tab" data-toggle="tab">
 									Existing content
 								</a>
 							</li>
-							<li role="presentation">
+							<li id="tab_upload" role="presentation">
 								<a href="#upload" aria-controls="upload" role="tab" data-toggle="tab">
 									Upload content
 								</a>
@@ -145,7 +157,13 @@
 							<div role="tabpanel" class="tab-pane" id="upload">
 								<form action="/content/" method="POST" enctype="multipart/form-data">
 									{% csrf_token %}
-									<input class="form-control" type="file" name="file"/>
+									<input id="file" type="file" name="file" style="display:none"/>
+									<div class="input-group">
+										<input id="file_name" class="form-control" type="text">
+										<span class="input-group-btn">
+											<button class="btn btn-default" onclick="$('input[id=file]').click();event.preventDefault()">Browse</button>
+										</span>
+									</div>
 									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('form')[0])"/>
 								</form>
 							</div>
