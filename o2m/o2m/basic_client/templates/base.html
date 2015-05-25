@@ -1,4 +1,5 @@
 {% load static from staticfiles %}
+{% load bootstrap3 %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,6 +22,77 @@
 	</style>
 </head>
 <body>
+	<div id="select_content" class="modal modal-default fade" data-content-id="1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Select a piece of content</h4>
+				</div>
+				<div class="modal-body">
+					<div role="tabpanel">
+						<ul class="nav nav-tabs" role="tablist">
+							<li role="presentation" class="active">
+								<a href="#existing" aria-controls="existing" role="tab" data-toggle="tab">
+									Existing content
+								</a>
+							</li>
+							<li role="presentation">
+								<a href="#upload" aria-controls="upload" role="tab" data-toggle="tab">
+									Upload content
+								</a>
+							</li>
+						</ul>
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="existing">
+								Choose an existing content:
+							</div>
+							<div role="tabpanel" class="tab-pane" id="upload">
+								Upload a new piece of content:
+								<script>
+									function content_added(response) {
+										$('.btn.btn-success').val('Uploaded')
+										content_id = JSON.parse(response).content_id
+										$('#select_content').data('content-id', content_id)
+									}
+
+									function select_content(callback) {
+										$("#select_content").modal('show');
+										$("#select_content").on('hide.bs.modal', function(){
+											callback($("#select_content").data('content-id'))
+										});
+									}
+
+									function add_content_to_server(content_add_form) {
+										$.ajax({
+											url: '/content/',
+											type: 'POST',
+											success: content_added,
+											error: function(response){console.log(response.status)},
+											data: new FormData(content_add_form),
+											cache: false,
+											contentType: false,
+											processData: false
+										})
+									}
+								</script>
+								Please choose a file to upload
+								<form action="/content/" method="POST" enctype="multipart/form-data">
+									{% csrf_token %}
+									<input class="form-control" type="file" name="file"/>
+									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('form')[0])"/>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Use selected</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="container" style="padding-top:20px">
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">

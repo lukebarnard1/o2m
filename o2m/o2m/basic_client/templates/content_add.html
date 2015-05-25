@@ -3,13 +3,13 @@
 {% block body %}
 <script>
 	function content_added(response) {
-		$('input[type="submit"]').value = 'Uploaded'
+		$('.btn.btn-success').val('Uploaded')
 
 	}
 
 	function add_content_to_server(content_add_form) {
 		$.ajax({
-			url: '/content/1234',
+			url: '/content/',
 			type: 'POST',
 			success: content_added,
 			error: function(response){console.log(response.status)},
@@ -17,7 +17,7 @@
 			cache: false,
 			contentType: false,
 			processData: false
-		});
+		})
 	}
 </script>
 <div class="container">

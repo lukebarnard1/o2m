@@ -8,6 +8,7 @@ from json_view import JSONView
 from timeline import TimelineView
 from links import LinkView
 from content import ContentView
+from friend import FriendView
 
 from django.forms.models import model_to_dict
 
@@ -27,5 +28,8 @@ def timeline(request):
 	
 def notifications(request):
 	return NotificationView.as_view()(request)
+
+def friend(request, friend_id=None):
+	return FriendView.as_view(friend_id=friend_id)(request)
 	
 

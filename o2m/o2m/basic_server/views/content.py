@@ -5,8 +5,14 @@ import o2m
 from ..models import Content
 from auth import AuthenticatedView
 from django.views.generic import View
+import os
 
-class ContentView(View):
+import random
+import string
+def random_content_name():
+	return "".join([random.choice(string.digits) for i in xrange(8)])
+
+class ContentView(AuthenticatedView):
 
 	content_id = 1
 
@@ -28,20 +34,16 @@ class ContentView(View):
 		return ContentAddView.as_view(**kwargs)(request)
 
 	def post(self, request):
-		content_id = self.content_id
-
-		print '(Server)Using content_id {0} for content filename (but not for the actual id yet)'.format(content_id)
-
-		if 'content_text' in request.GET:
-			content = request.GET['content_text']
-			content_file_name = o2m.settings.O2M_BASE + '/' + content_id + '.html'
+		if 'content_text' in request.POST:
+			content = request.POST['content_text']
+			content_file_name = os.path.join(o2m.settings.O2M_BASE , '%s.html' % random_content_name())
 
 			print '(Server)Writing new content file at "%s"' % content_file_name
 			with open(content_file_name, 'w') as f:
 				f.write(content)
 		else:
 			uploaded_file = request.FILES['file']
-			content_file_name = o2m.settings.O2M_BASE + '/' + uploaded_file.name
+			content_file_name = os.path.join(o2m.settings.O2M_BASE, uploaded_file.name)
 
 			print '(Server)Writing new content file at "%s"' % content_file_name
 			with open(content_file_name, 'wb+') as content_file:

@@ -17,7 +17,6 @@ urlpatterns = patterns('',
     url(r'^o2m/upload_content$', 'o2m.basic_client.views.content_add_view'), #Displays a timeline view of all of your friends/timelines
     
     url(r'^o2m/add_linked_content$', 'o2m.basic_client.views.add_linked_content'), #Adds content to your server and a link to the friend specified
-    url(r'^o2m/add_content$', 'o2m.basic_client.views.add_content'), # Just adds content to your server
     url(r'^o2m/delete_content$', 'o2m.basic_client.views.delete_content'),
     url(r'^o2m/delete_link$', 'o2m.basic_client.views.delete_link'),
     url(r'^o2m/username$', 'o2m.basic_client.views.username'),
@@ -39,5 +38,6 @@ urlpatterns = patterns('',
     url(r'^node/(?P<content_id>.*)$', 'o2m.basic_server.views.link'),
     url(r'^content/(?P<content_id>[0-9]*)$', 'o2m.basic_server.views.content'),
     url(r'^notifications/$', 'o2m.basic_server.views.notifications'),
+    url(r'^friend/(?P<friend_id>[0-9]*)$', 'o2m.basic_server.views.friend'),
 
 )

@@ -14,13 +14,10 @@ import o2m, o2m.settings
 import random
 import string
 
-def random_content_name():
-	return "".join([random.choice(string.digits) for i in xrange(8)])
-
 def get_authenticated_link(source_address, me, friend):
 	return source_address# + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
 
-def get_from_friend(source_address, friend , me, method = 'GET', variables = {}, file_for_upload = None):
+def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
 	address = friend.address
 	if address == '127.0.0.1':
 		import socket
@@ -40,26 +37,7 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {},
 		"Content-Type": "application/x-www-form-urlencoded",
 		"Accept": "text/plain"}
 
-	if file_for_upload is None:
-		response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
-	else:
-		file_data = file_for_upload.read()
-
-		import mimetypes
-		file_type = mimetypes.guess_type(file_for_upload.name)[0]
-		boundary = '------WebKitFormBoundary9R21pfny0Ox8thjF'
-		headers['Content-Type'] = "multipart/form-data; boundary=%s" % boundary
-		import base64
-		body = """%s
-Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"%s\"
-Content-Type: %s
-%s
-%s""" % (boundary, file_for_upload.name, file_type, base64.b64encode(file_data), boundary)
-
-		headers['content-length'] = str(len(body))
-
-		response_headers, content = con.request(url, method, headers = headers, body=body)
-
+	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
 
 	# If there's a new password, update it for this friend
 	if 'np' in response_headers.keys():
@@ -88,8 +66,9 @@ class AuthenticatedView(View):
 
 	def dispatch(self, request, *args, **kwargs):
 		self.username = request.user.username
+		self.session_key = request.session.session_key
 
-		print '(Client)Logged in as %s' % self.username
+		print '(Client)Logged in as %s with session %s' % (self.username, request.session.session_key)
 
 		if self.username == '':
 			print '(Client)User needs to login'
@@ -234,9 +213,7 @@ def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 		'content_text': content_text
 	}
 
-	content_id = random_content_name()
-
-	response_headers, content = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', variables = variables)
+	response_headers, content = get_from_friend('/content/', me, me, method='POST', variables = variables)
 
 	if response_headers['status'] == '200':
 		content_id = json.loads(content)['content_id']
@@ -245,7 +222,7 @@ def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 
 		return get_from_friend('/node/{0}'.format(parent_id), friend , me, method='POST', variables = {'content_id': content_id})
 	else:
-		return content_add_response
+		return response_headers, content
 
 
 def add_linked_content(request):
@@ -475,7 +452,7 @@ def login_user(request):
 	else:
 		return HttpResponse('Not Registered')
 
-class ContentAddView(TemplateView):
+class ContentAddView(AuthenticatedView, TemplateView):
 	template_name = "content_add.html"
 
 	class ContentAddForm(forms.Form):
@@ -494,18 +471,3 @@ def handle_uploaded_file(f):
 
 def content_add_view(request, **kwargs):
 	return ContentAddView.as_view(**kwargs)(request)
-
-def add_content(request):
-	# Create a Content, but do not link it
-
-	me = Friend.objects.get(name=request.user.username)
-
-	# Uploaded here = uploaded to the CLIENT!
-	uploaded_file = request.FILES['file']
-	# handle_uploaded_file(uploaded_file)
-
-	content_id = random_content_name()
-
-	with uploaded_file as f:
-		response_headers, content = get_from_friend('/content/{0}'.format(content_id), me, me, method='POST', file_for_upload=f)
-
