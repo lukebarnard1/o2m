@@ -1,6 +1,8 @@
 # o2m
 o2m/social/
+cache/
 *.sqlite3
+
 
 # Mac
 .DS_STORE
