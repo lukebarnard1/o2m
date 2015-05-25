@@ -9,6 +9,7 @@ from timeline import TimelineView
 from links import LinkView
 from content import ContentView
 from friend import FriendView
+from content_list import ContentListView
 
 from django.forms.models import model_to_dict
 
@@ -32,4 +33,5 @@ def notifications(request):
 def friend(request, friend_id=None):
 	return FriendView.as_view(friend_id=friend_id)(request)
 	
-
+def content_list(request):
+	return ContentListView.as_view()(request)

@@ -23,6 +23,102 @@
 </head>
 <body>
 	<div id="select_content" class="modal modal-default fade" data-content-id="1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<script>
+			function set_selected(content_id) {
+				$('#select_content').data('content-id', content_id)
+				$('#existing a').removeClass("active")
+				$('#existing').find('#' + content_id + " a").addClass("active")
+			}
+
+			function content_added(response) {
+				$('.btn.btn-success').val('Uploaded')
+				content_id = JSON.parse(response).content_id
+				refresh_existing()
+				set_selected(content_id)
+			}
+
+			function html_content_link(content) {
+				icon = $(document.createElement('div'))
+				icon.addClass('content_link').addClass('col-xs-6').addClass('col-md-3')
+				icon.attr('id', content.id)
+
+				link = $(document.createElement('a'))
+				link.attr('href', 'javascript:;')
+				link.on('click', function(){
+					set_selected(content.id)
+				})
+				link.addClass("thumbnail")
+
+				img = document.createElement('img')
+				img.src = '/content/' + content.id
+				$(img).addClass('img-responsive')
+
+				file_name = document.createElement('p')
+				last_slash_index = content.file_path.lastIndexOf('/') + 1
+				file_name.innerHTML = content.file_path.substring(last_slash_index)
+
+				link.append(img)
+				link.append(file_name)
+
+				icon.append(link)
+
+				return icon
+			}
+
+			function populate_existing(response) {
+				existing = JSON.parse(response)
+
+				$("#existing").html("")
+				for (i = 0; i < existing.length; i++) {
+					$("#existing").append(html_content_link(existing[i]))
+				}
+			}
+
+			function refresh_existing() {
+				$.ajax({
+					url: '/content_list',
+					type: 'GET',
+					cache: false,
+					success: populate_existing,
+					error: function(response){console.log(response.status)}
+				})
+			}
+
+			function select_content(callback) {
+				refresh_existing()
+
+				$("#select_content").modal('show');
+				$("#select_content").on('hide.bs.modal', function(){
+					content_id = $("#select_content").data('content-id')
+					if (content_id != 0) {
+						callback(content_id)
+					}
+				});
+			}
+
+			function add_content_to_server(content_add_form) {
+				$.ajax({
+					url: '/content/',
+					type: 'POST',
+					success: content_added,
+					error: function(response){console.log(response.status)},
+					data: new FormData(content_add_form),
+					cache: false,
+					contentType: false,
+					processData: false
+				})
+			}
+
+			function cancel_select_content() {
+				// 0 means don't send
+				$("#select_content").data('content-id', 0)
+				$("#select_content").modal('hide')
+			}
+
+			function use_selected_content() {
+				$("#select_content").modal('hide')
+			}
+		</script>
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -44,39 +140,9 @@
 							</li>
 						</ul>
 						<div class="tab-content">
-							<div role="tabpanel" class="tab-pane active" id="existing">
-								Choose an existing content:
+							<div role="tabpanel" class="tab-pane active row well" id="existing">
 							</div>
 							<div role="tabpanel" class="tab-pane" id="upload">
-								Upload a new piece of content:
-								<script>
-									function content_added(response) {
-										$('.btn.btn-success').val('Uploaded')
-										content_id = JSON.parse(response).content_id
-										$('#select_content').data('content-id', content_id)
-									}
-
-									function select_content(callback) {
-										$("#select_content").modal('show');
-										$("#select_content").on('hide.bs.modal', function(){
-											callback($("#select_content").data('content-id'))
-										});
-									}
-
-									function add_content_to_server(content_add_form) {
-										$.ajax({
-											url: '/content/',
-											type: 'POST',
-											success: content_added,
-											error: function(response){console.log(response.status)},
-											data: new FormData(content_add_form),
-											cache: false,
-											contentType: false,
-											processData: false
-										})
-									}
-								</script>
-								Please choose a file to upload
 								<form action="/content/" method="POST" enctype="multipart/form-data">
 									{% csrf_token %}
 									<input class="form-control" type="file" name="file"/>
@@ -87,8 +153,8 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary">Use selected</button>
+					<button type="button" class="btn btn-default" onclick="cancel_select_content()">Close</button>
+					<button type="button" class="btn btn-primary" onclick="use_selected_content()">Use selected content</button>
 				</div>
 			</div>
 		</div>

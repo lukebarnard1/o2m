@@ -31,10 +31,7 @@
 						if(!callback) {
 							callback = function(response){console.log(response.status)}
 						}
-
-						if(friend_id < 0) {
-							friend_id = 'me'
-						}
+						
 						$.ajax({
 							url: '/friend/' + friend_id,
 							type: 'PUT',
