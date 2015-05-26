@@ -7,7 +7,7 @@
 		{% if friend %}
 		<div class="col-md-3">
 			<h3>{{friend.name}}</h3>
-			<img class="img-responsive" src="http://{{me.address}}:{{me.port}}/o2m/friend/{{friend.name}}/content/{{friend.user_photo_content_id}}">
+			<img class="img-responsive" src="http://{{me.address}}:{{me.port}}/o2m/friend/{{friend.name}}/content/{{friend.photo_content_id}}">
 			{% if request_sent %}
 				A request has been sent
 			{% elif non_friend %}
