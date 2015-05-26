@@ -106,6 +106,14 @@
 						callback(content)
 					}
 				});
+				$("#file").on('change', function(){
+					file_path = $("#file").val()
+					last_slash_index = file_path.lastIndexOf('/') + 1
+					if (last_slash_index == 0) {
+					last_slash_index = file_path.lastIndexOf('\\') + 1
+					}
+					$("#file_name").val(file_path.substring(last_slash_index))
+				})
 			}
 
 			function add_content_to_server(content_add_form) {
