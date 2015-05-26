@@ -80,7 +80,7 @@
 					{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 					<div class="media-body panel panel-default">
 						<div class="panel-heading">
-							{{link.friend.name}} posted this {{link.creation_time | naturaltime}}
+							<a href="/o2m/friend/{{link.friend.name}}">{{link.friend.name}}</a> posted this {{link.creation_time | naturaltime}}
 							<div class="pull-right">
 								<form action="/o2m/delete_link" method="POST">
 									{% csrf_token %}
