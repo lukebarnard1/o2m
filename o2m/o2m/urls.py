@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     url(r'^o2m/login$', 'o2m.basic_client.views.login_view'),
     url(r'^o2m/home$', 'o2m.basic_client.views.home'), #Displays your own content tree
     url(r'^o2m/timeline$', 'o2m.basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines
+    url(r'^o2m/friends', 'o2m.basic_client.views.friends'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/friend/(?P<friend_name>[^\@\:\/]*)$', 'o2m.basic_client.views.friend'), #Displays a timeline view of all of your friends/timelines
     url(r'^o2m/friend/(?P<friend_name>[^\@\:\/]*)/content/(?P<content_id>[0-9]*)$', 'o2m.basic_client.views.friend_content'), #Retrieves content from a friend
     url(r'^o2m/non_friend/(?P<friend_name>.*)\@(?P<friend_ip>.*)\:(?P<friend_port>.*)$', 'o2m.basic_client.views.non_friend'), #Displays a timeline view of all of your friends/timelines
