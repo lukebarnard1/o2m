@@ -6,6 +6,7 @@ import settings
 urlpatterns = patterns('',
     
     # Front end
+    url(r'^$', 'o2m.basic_client.views.timeline'),
     url(r'^o2m/login$', 'o2m.basic_client.views.login_view'),
     url(r'^o2m/home$', 'o2m.basic_client.views.home'), #Displays your own content tree
     url(r'^o2m/timeline$', 'o2m.basic_client.views.timeline'), #Displays a timeline view of all of your friends/timelines

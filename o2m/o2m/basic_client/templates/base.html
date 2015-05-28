@@ -116,6 +116,19 @@
 				})
 			}
 
+			function ajax_submit_form(form, success, error) {
+				$.ajax({
+					url: form.attr('action'),
+					type: form.attr('method'),
+					success: success,
+					error: error,
+					data: new FormData(form[0]),
+					cache: false,
+					contentType: false,
+					processData: false
+				})
+			}
+
 			function add_content_to_server(content_add_form) {
 				$.ajax({
 					url: '/content/',
@@ -172,7 +185,7 @@
 											<button class="btn btn-default" onclick="$('input[id=file]').click();event.preventDefault()">Browse</button>
 										</span>
 									</div>
-									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('form')[0])"/>
+									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('#select_content')[0])"/>
 								</form>
 							</div>
 						</div>

@@ -470,11 +470,17 @@ def login_user(request):
 	if user is not None:
 		if user.is_active:
 			login(request, user)
-			return redirect('/o2m/timeline')
+			resp = HttpResponse('Successful login!')
+			resp.status_code = 200
+			return resp
 		else:
-			return HttpResponse('Not Registered (not active)')
+			resp = HttpResponse('Not Registered (not active)')
+			resp.status_code = 500
+			return resp
 	else:
-		return HttpResponse('Not Registered')
+		resp = HttpResponse('Not Registered')
+		resp.status_code = 500
+		return resp
 
 class ContentAddView(AuthenticatedView, TemplateView):
 	template_name = "content_add.html"

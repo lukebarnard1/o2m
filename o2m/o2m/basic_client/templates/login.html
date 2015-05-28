@@ -3,14 +3,34 @@
 {% block body %}
 <div class="container">
 	<div class="row">
-		<div class="col-md-4"></div>
-		<div class="col-md-4">
-			Please login
-			<form action="/o2m/login_user" method="POST">
-				{% csrf_token %}
-				{% bootstrap_form login_form %}
-				<input class="btn btn-success" type="submit" value="Login"/>
-			</form>
+		<div class="col-md-3"></div>
+		<div class="col-md-6">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					Please login
+					<form id="login_form" action="/o2m/login_user" method="POST" onsubmit="event.preventDefault();ajax_submit_form($('#login_form'), login_success, login_failure);return false">
+						{% csrf_token %}
+						{% bootstrap_form login_form %}
+						<input class="btn btn-success" type="submit" value="Login"/>
+						<script>
+							function login_success (response) {
+								$('#login_failure').hide()
+								$('#login_success').show()
+								window.location = '/o2m/timeline'
+							}
+
+							function login_failure (response) {
+								$('#login_failure').show()
+								$('#login_success').hide()
+							}
+						</script>
+					</form>
+				</div>
+				<div class="panel-footer">
+					<div id="login_failure" class="alert alert-danger" role="alert" style="display:none;margin-bottom:0px">Login unsuccessful! Please check your login details.</div>
+					<div id="login_success" class="alert alert-success" role="alert" style="display:none;margin-bottom:0px">Login successful! Redirecting you now.</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
