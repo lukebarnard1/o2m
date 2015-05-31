@@ -50,8 +50,17 @@
 				})
 				link.addClass("thumbnail")
 
+				last_dot_index = content.file_path.lastIndexOf('.') + 1
+				content_file_type = content.file_path.substring(last_dot_index).toLowerCase()
+
 				img = document.createElement('img')
-				img.src = '/content/' + content.id
+
+				if (content_file_type in {'jpeg': 1, 'jpg': 1, 'png': 1}) {
+					img.src = '/content/' + content.id
+				} else {
+					img.src = '/extra/img/thumbnails/document.png'
+				}
+
 				$(img).addClass('img-responsive')
 
 				file_name = document.createElement('p')
