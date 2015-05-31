@@ -71,7 +71,7 @@ class Friend(models.Model):
 		return "{0}@{1}".format(self.name, self.address)
 
 class Content(models.Model):
-	file_path = models.FilePathField(path=o2m.settings.O2M_BASE, recursive=True)
+	file_path = models.FilePathField(path=o2m.settings.O2M_CONTENT_BASE, recursive=True)
 	integer = models.IntegerField(default=0) # Non-descript to allow variations
 
 	def get_http_response(self):

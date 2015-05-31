@@ -36,14 +36,14 @@ class ContentView(AuthenticatedView):
 	def post(self, request):
 		if 'content_text' in request.POST:
 			content = request.POST['content_text']
-			content_file_name = os.path.join(o2m.settings.O2M_BASE , '%s.html' % random_content_name())
+			content_file_name = os.path.join(o2m.settings.O2M_CONTENT_BASE , '%s.html' % random_content_name())
 
 			print '(Server)Writing new content file at "%s"' % content_file_name
-			with open(content_file_name, 'w') as f:
+			with open(content_file_name, 'wb+') as f:
 				f.write(content)
 		else:
 			uploaded_file = request.FILES['file']
-			content_file_name = os.path.join(o2m.settings.O2M_BASE, uploaded_file.name)
+			content_file_name = os.path.join(o2m.settings.O2M_CONTENT_BASE, uploaded_file.name)
 
 			print '(Server)Writing new content file at "%s"' % content_file_name
 			with open(content_file_name, 'wb+') as content_file:
