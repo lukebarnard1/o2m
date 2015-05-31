@@ -48,7 +48,8 @@ if __name__ == "__main__":
 		print friends
 
 	hostname = socket.gethostname()
-	ip = socket.gethostbyname(hostname)
+	# ip = socket.gethostbyname(hostname)
+	ip = '127.0.0.1'
 	port = 8000
 	new_argv = sys.argv  + ['runserver', '%s:%s' % (ip, port)]
 	execute_from_command_line(new_argv)

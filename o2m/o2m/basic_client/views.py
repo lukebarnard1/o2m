@@ -19,11 +19,11 @@ def get_authenticated_link(source_address, me, friend):
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
 	address = friend.address
-	if address == '127.0.0.1':
-		import socket
-		hostname = socket.gethostname()
-		address = socket.gethostbyname(hostname)
-		print '(Client)Converting 127.0.0.1 to %s' % address
+	# if address == '127.0.0.1':
+	# 	import socket
+	# 	hostname = socket.gethostname()
+	# 	address = socket.gethostbyname(hostname)
+	# 	print '(Client)Converting 127.0.0.1 to %s' % address
 
 	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, address, friend.port)
 	
@@ -392,7 +392,7 @@ def to_django_response(response_headers, content):
 	return resp
 
 def friend_content(request, friend_name, content_id):
-
+	print '(Client)' + request.user.username
 	me = Friend.objects.get(name=request.user.username)
 	friend = Friend.objects.get(name=friend_name)
 
@@ -433,11 +433,6 @@ def username(request):
 
 	me = Friend.objects.get(name=o2m.settings.DEFAULT_USERNAME)
 	me.name = new_username
-
-	# Set the IP to the network address
-	import socket
-	hostname = socket.gethostname()
-	me.address = socket.gethostbyname(hostname)
 	me.save()
 
 	user = User.objects.get(username=o2m.settings.DEFAULT_USERNAME)
