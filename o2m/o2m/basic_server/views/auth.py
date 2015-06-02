@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.contrib.auth import authenticate, login
 import o2m
+from o2m.basic_server.models import Friend
 
 def random_password():
 	return "".join([random.choice(string.ascii_letters + string.digits + ".-") for i in xrange(32)])
@@ -62,6 +63,16 @@ class AuthenticatedView(View):
 			change_username_response.reason_phrase = 'Need to change username'
 			change_username_response.status_code = 401
 			return change_username_response
+
+		possible_friends = Friend.objects.filter(name=username)
+		if len(possible_friends):
+			friend = possible_friends[0]
+			print '(Server)Updating Friend IP'
+			from ipware.ip import get_ip
+			address = get_ip(request)
+			print '%s\'s new address is %s' %(friend.name, friend.address)
+			friend.address = address
+			friend.save()
 
 		if not self.must_be_owner(request) or user.is_staff:
 			print '(Server)Dispatching...'
