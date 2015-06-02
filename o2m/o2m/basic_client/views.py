@@ -45,6 +45,8 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 
 	was_cached = dateutil.parser.parse(response_headers['date']) < utc.localize(datetime.now())
 
+	print '%s < %s ? %s' %(dateutil.parser.parse(response_headers['date']), utc.localize(datetime.now()), (dateutil.parser.parse(response_headers['date']) < utc.localize(datetime.now())))
+
 	if was_cached:
 		print '\tThat was cached! Not using new password (now out of date)'
 
