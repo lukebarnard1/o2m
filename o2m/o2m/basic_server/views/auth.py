@@ -83,7 +83,7 @@ class AuthenticatedView(View):
 
 				user.set_password(new_password)
 
-				print '\t Password for %s now %s'% (user.username, new_password)
+				# print '\t Password for %s now %s'% (user.username, new_password)
 				user.save()
 
 				response['np'] = new_password

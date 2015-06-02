@@ -36,28 +36,24 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		"Content-Type": "application/x-www-form-urlencoded",
 		"Accept": "text/plain"}
 
-	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
 	from datetime import datetime, timedelta
 	import pytz
-
 	utc=pytz.UTC
+	
+	d = datetime.now(utc) - timedelta(seconds = 1)
+	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
 
 	# Was this cached? Did the response get sent more than a second ago?
-	was_cached = dateutil.parser.parse(response_headers['date']) < datetime.now(utc) - timedelta(seconds = 1)
+	was_cached = dateutil.parser.parse(response_headers['date']) < d
 
-	# print '(Client)%s < %s ? %s'% (dateutil.parser.parse(response_headers['date']), datetime.now(utc) - timedelta(seconds = 1), was_cached)
-
-	if was_cached:
-		pass
-		# print '\tThat was cached! Not using new password (now out of date)'
-	else:
+	if not was_cached:
 		print "(Client)Logged into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend.name, me.name, method, variables, source_address, address, friend.port)
 		print "\t Got %s" % response_headers['status']
 
 	# If there's a new password, update it for this friend
 	if not was_cached and 'np' in response_headers.keys():
 		friend.password = response_headers['np']
-		print '\t Password for %s now %s'% (friend.name, friend.password)
+		# print '\t Password for %s now %s'% (friend.name, friend.password)
 		friend.save()	
 	return response_headers, content
 
