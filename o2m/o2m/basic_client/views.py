@@ -38,9 +38,18 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		"Accept": "text/plain"}
 
 	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
+	from datetime import datetime
+	import pytz
+
+	utc=pytz.UTC
+
+	was_cached = dateutil.parser.parse(response_headers['date']) < utc.localize(datetime.now())
+
+	if was_cached:
+		print '\tThat was cached! Not using new password (now out of date)'
 
 	# If there's a new password, update it for this friend
-	if 'np' in response_headers.keys():
+	if not was_cached and 'np' in response_headers.keys():
 		friend.password = response_headers['np']
 		friend.save()	
 	return response_headers, content
