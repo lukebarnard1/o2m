@@ -185,7 +185,7 @@
 							<div role="tabpanel" class="tab-pane active row well" id="existing">
 							</div>
 							<div role="tabpanel" class="tab-pane" id="upload">
-								<form id="select_content_form" action="/content/" method="POST" enctype="multipart/form-data">
+								<form action="/content/" method="POST" enctype="multipart/form-data">
 									{% csrf_token %}
 									<input id="file" type="file" name="file" style="display:none"/>
 									<div class="input-group">
@@ -194,7 +194,7 @@
 											<button class="btn btn-default" onclick="$('input[id=file]').click();event.preventDefault()">Browse</button>
 										</span>
 									</div>
-									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('#select_content_form')[0])"/>
+									<input class="btn btn-success" type="submit" onclick="event.preventDefault();add_content_to_server($('#select_content')[0])"/>
 								</form>
 							</div>
 						</div>
