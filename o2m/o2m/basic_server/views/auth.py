@@ -82,6 +82,8 @@ class AuthenticatedView(View):
 				new_password = random_password()
 
 				user.set_password(new_password)
+
+				print '\t Password for %s now %s'% (user.username, new_password)
 				user.save()
 
 				response['np'] = new_password

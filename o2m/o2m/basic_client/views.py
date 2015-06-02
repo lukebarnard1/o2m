@@ -25,7 +25,6 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		address = socket.gethostbyname(hostname)
 		print '(Client)Converting 127.0.0.1 to %s' % address
 
-	print "(Client)Logging into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend, me, method, variables, source_address, address, friend.port)
 	
 	con = httplib2.Http('cache')
 
@@ -46,12 +45,19 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 	# Was this cached? Did the response get sent more than a second ago?
 	was_cached = dateutil.parser.parse(response_headers['date']) < datetime.now(utc) - timedelta(seconds = 1)
 
+	# print '(Client)%s < %s ? %s'% (dateutil.parser.parse(response_headers['date']), datetime.now(utc) - timedelta(seconds = 1), was_cached)
+
 	if was_cached:
-		print '\tThat was cached! Not using new password (now out of date)'
+		pass
+		# print '\tThat was cached! Not using new password (now out of date)'
+	else:
+		print "(Client)Logged into {0} as {1} to do {2} with {3} with URL {5}:{6}{4} ".format(friend.name, me.name, method, variables, source_address, address, friend.port)
+		print "\t Got %s" % response_headers['status']
 
 	# If there's a new password, update it for this friend
 	if not was_cached and 'np' in response_headers.keys():
 		friend.password = response_headers['np']
+		print '\t Password for %s now %s'% (friend.name, friend.password)
 		friend.save()	
 	return response_headers, content
 
