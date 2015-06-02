@@ -99,7 +99,7 @@ class TimelineView(AuthenticatedView, TemplateView):
 		if self.just_me:
 			friends = [Friend.objects.get(name=self.username)]
 		else:
-			friends = Friend.objects.filter()
+			friends = Friend.objects.exclude(password='NOTFRIENDS')
 		return friends
 
 	def get_context_data(self, **kwargs):
@@ -368,9 +368,12 @@ class FriendView(TimelineView):
 					self.friend = existing[0]
 					return [existing[0]]
 			raise Exception('Friend unknown, supply ip and port to non_friend endpoint')
-		else:
+		elif f.password != 'NOTFRIENDS':
 			self.friend = f
 			return [f]
+		else:
+			self.friend = f
+			return []
 
 	def get_context_data(self, **kwargs):
 		context = super(FriendView, self).get_context_data(**kwargs)
