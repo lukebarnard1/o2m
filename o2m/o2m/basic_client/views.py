@@ -38,14 +38,13 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		"Accept": "text/plain"}
 
 	response_headers, content = con.request(url, method, headers = headers, body=urllib.urlencode(variables))
-	from datetime import datetime
+	from datetime import datetime, timedelta
 	import pytz
 
 	utc=pytz.UTC
 
-	was_cached = dateutil.parser.parse(response_headers['date']) < utc.localize(datetime.now())
-
-	print '%s < %s ? %s' %(dateutil.parser.parse(response_headers['date']), utc.localize(datetime.now()), (dateutil.parser.parse(response_headers['date']) < utc.localize(datetime.now())))
+	# Was this cached? Did the response get sent more than a second ago?
+	was_cached = dateutil.parser.parse(response_headers['date']) < datetime.now(utc) - timedelta(seconds = 1)
 
 	if was_cached:
 		print '\tThat was cached! Not using new password (now out of date)'
