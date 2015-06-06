@@ -13,11 +13,13 @@ from django.shortcuts import redirect
 import o2m, o2m.settings
 import random
 import string
+from datetime import datetime, timedelta
+import pytz
+import socket
 
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
 	address = friend.address
 	if address == '127.0.0.1':
-		import socket
 		hostname = socket.gethostname()
 		address = socket.gethostbyname(hostname)
 		print '(Client)Converting 127.0.0.1 to %s' % address
@@ -33,8 +35,6 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 		"Content-Type": "application/x-www-form-urlencoded",
 		"Accept": "text/plain"}
 
-	from datetime import datetime, timedelta
-	import pytz
 	utc=pytz.UTC
 	
 	d = datetime.now(utc) - timedelta(seconds = 1)
