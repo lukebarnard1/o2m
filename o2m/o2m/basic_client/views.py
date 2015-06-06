@@ -14,9 +14,6 @@ import o2m, o2m.settings
 import random
 import string
 
-def get_authenticated_link(source_address, me, friend):
-	return source_address# + '?' + urllib.urlencode({'username':me.name, 'password': friend.password})
-
 def get_from_friend(source_address, friend , me, method = 'GET', variables = {}):
 	address = friend.address
 	if address == '127.0.0.1':
@@ -28,7 +25,7 @@ def get_from_friend(source_address, friend , me, method = 'GET', variables = {})
 	
 	con = httplib2.Http('cache')
 
-	url = 'http://%s:%s%s' % (address, friend.port, get_authenticated_link(source_address, me, friend))
+	url = 'http://%s:%s%s' % (address, friend.port, source_address)
 
 	headers = {
 		#This should be base64 encoded
