@@ -5,13 +5,9 @@ O2M – One to Many, The Distributed Social Network
 Introduction
 ============
 
-Enough has been said with regard to government agencies accessing our
-every thought, action and emotion so there is not much point adding to
-the deafening cacophony of hate aimed towards organizations such as The
-NSA. It could be much worse, let’s be honest. However, I for one am
-tired of using free systems that are funded by my own contribution to
-this world. My connections with other people are fuelling the accuracy
-of advertisement agencies and quite frankly, there’s nothing more
+I for one am tired of using free systems that are funded by my own
+contribution to this world. My connections with other people are fuelling the
+accuracy of advertisement agencies and quite frankly, there’s nothing more
 annoying.
 
 The fact of the matter is that when data is all in one place and we’ve
