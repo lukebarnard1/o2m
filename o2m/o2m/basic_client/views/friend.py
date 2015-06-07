@@ -57,46 +57,6 @@ class FriendView(TimelineView):
 def friend(request, **kwargs):
 	return FriendView.as_view(**kwargs)(request)
 
-
-def add_friend(request, friend_name, friend_ip, friend_port):
-	print '(Client)Adding friend:'
-	print '\tfriend_name: %s' % friend_name
-	print '\tfriend_ip: %s' % friend_ip
-	print '\tfriend_port: %s' % friend_port
-	me = Friend.objects.get(name=request.user.username)
-
-	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
-
-	if friend.password == 'REQUESTRECEIVED':
-		new_user = User.objects.create_user(friend.name, password='REQUESTSENT')
-		new_user.save()
-
-	friend.send_notification(me, 'Friend request', -1, me.name)
-	friend.password = 'REQUESTSENT'
-	friend.save()
-
-	return redirect('/o2m/friend/%s' % friend.name)
-
-
-def to_django_response(response_headers, content):
-	resp = HttpResponse(content)
-	for k,v in response_headers.iteritems():
-		try:
-			resp[k] = v
-		except Exception as e:
-			print '(Client[views.to_django_response])Ignoring %s = %s' % (k, v)
-	return resp
-
-def friend_content(request, friend_name, content_id):
-
-	me = Friend.objects.get(name=request.user.username)
-	friend = Friend.objects.get(name=friend_name)
-
-	source_address = '/content/%s' % content_id
-	
-	response_headers, content = get_from_friend(source_address, friend , me)
-	return to_django_response(response_headers, content)
-
 class FriendListView(AuthenticatedView, TemplateView):
 	template_name = "friends.html"
 
@@ -121,3 +81,41 @@ class FriendListView(AuthenticatedView, TemplateView):
 
 def friend_list(request):
 	return FriendListView.as_view()(request)
+
+def add_friend(request, friend_name, friend_ip, friend_port):
+	print '(Client)Adding friend:'
+	print '\tfriend_name: %s' % friend_name
+	print '\tfriend_ip: %s' % friend_ip
+	print '\tfriend_port: %s' % friend_port
+	me = Friend.objects.get(name=request.user.username)
+
+	friend = Friend.objects.get(name = friend_name, address = friend_ip, port = friend_port)
+
+	if friend.password == 'REQUESTRECEIVED':
+		new_user = User.objects.create_user(friend.name, password='REQUESTSENT')
+		new_user.save()
+
+	friend.send_notification(me, 'Friend request', -1, me.name)
+	friend.password = 'REQUESTSENT'
+	friend.save()
+
+	return redirect('/o2m/friend/%s' % friend.name)
+
+def to_django_response(response_headers, content):
+	resp = HttpResponse(content)
+	for k,v in response_headers.iteritems():
+		try:
+			resp[k] = v
+		except Exception as e:
+			print '(Client[views.to_django_response])Ignoring %s = %s' % (k, v)
+	return resp
+
+def friend_content(request, friend_name, content_id):
+	me = Friend.objects.get(name=request.user.username)
+	friend = Friend.objects.get(name=friend_name)
+
+	source_address = '/content/%s' % content_id
+	
+	response_headers, content = get_from_friend(source_address, friend , me)
+	return to_django_response(response_headers, content)
+

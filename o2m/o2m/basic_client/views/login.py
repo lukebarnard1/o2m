@@ -2,6 +2,7 @@
 from django.views.generic import TemplateView
 from django import forms
 from django.http import HttpResponse
+from django.contrib.auth import authenticate, login
 
 class LoginView(TemplateView):
 	template_name = "login.html"
@@ -16,7 +17,6 @@ class LoginView(TemplateView):
 def login_view(request, **kwargs):
 	return LoginView.as_view(**kwargs)(request)
 
-from django.contrib.auth import authenticate, login
 def login_user(request):
 	username = request.POST['username']
 	password = request.POST['password']
