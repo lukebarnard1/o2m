@@ -20,3 +20,8 @@ class TestInitialDatabase(unittest.TestCase):
 	def test_admin_user(self):
 		'''Make sure there is an admin User in the database'''
 		self.assertTrue(len(User.objects.filter(username='admin', is_staff=True, is_superuser=True)) > 0)
+	
+	def test_default_user(self):
+		'''Make sure there is a default User in the database'''
+		self.assertTrue(len(User.objects.filter(username='user', is_staff=True, is_superuser=True)) > 0)
+
