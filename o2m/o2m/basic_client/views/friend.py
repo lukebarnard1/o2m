@@ -1,5 +1,7 @@
 
+from auth import AuthenticatedView
 from timeline_view import TimelineView
+from django.views.generic import TemplateView
 from o2m.basic_server.models import Friend
 
 from django.contrib.auth.models import User
@@ -92,3 +94,28 @@ def friend_content(request, friend_name, content_id):
 	
 	response_headers, content = get_from_friend(source_address, friend , me)
 	return to_django_response(response_headers, content)
+
+class FriendListView(AuthenticatedView, TemplateView):
+	template_name = "friends.html"
+
+	def get_context_data(self, **kwargs):
+		me = Friend.objects.get(name=self.username)
+
+		source_address = '/friend/'
+
+		response_headers = None
+
+		try:
+			response_headers, content = get_from_friend(source_address, me, me)
+		except Exception as e:
+			print "Loading notifications data from {0} failed: {1}".format(me.name, e)
+
+		if response_headers is not None:
+			if response_headers['status'] == '200':
+				friends = json.loads(content)
+
+				return {'friends' : friends,
+						'me' : model_to_dict(me)}
+
+def friend_list(request):
+	return FriendListView.as_view()(request)
