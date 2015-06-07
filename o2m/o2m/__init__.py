@@ -1,5 +1,8 @@
+import o2m
+import o2m.settings
 
 def setup_initial_database():
+	print 'Database located here: %s' % o2m.settings.DATABASES['default']['NAME']
 	from django.core.management import execute_from_command_line
 
 	execute_from_command_line(['manage.py','makemigrations'])
