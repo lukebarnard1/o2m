@@ -19,6 +19,7 @@ setup(
 		('%s/o2m/content' % home,[])
 		# ('',['LICENSE']),
 	],
+	test_suite = 'o2m.tests',
 
 	# metadata for upload to PyPI
 	author = "Luke Barnard",
