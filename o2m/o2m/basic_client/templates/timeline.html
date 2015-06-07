@@ -25,33 +25,7 @@
 		<div class="col-md-3">
 			<h1>{{me.name}}</h1>
 			<div id='no_user_photo' style="display:none">
-				<a href="javascript:;" onclick="upload_new_display_picture()">Upload a new display picture</a>
-				<script>
-					function update_friend(friend_id, data, callback) {
-						if(!callback) {
-							callback = function(response){console.log(response.status)}
-						}
-						
-						$.ajax({
-							url: '/friend/' + friend_id,
-							type: 'PUT',
-							success: callback,
-							data: JSON.stringify(data),
-							error: function(response){console.log(response.status)}
-						})
-					}
-
-					function set_my_user_photo(content) {
-						function done(response) {
-							window.location = '/o2m/timeline'
-						}
-						update_friend('{{me.id}}', {'photo_content_id':content.id}, done)
-					}
-
-					function upload_new_display_picture() {
-						select_content(set_my_user_photo, 'image/jpeg')
-					}
-				</script>
+				<a href="javascript:;" onclick="o2m.upload_new_display_picture()">Upload a new display picture</a>
 			</div>
 			<script>
 				function no_user_photo() {
@@ -59,7 +33,7 @@
 					$('#user_photo').hide()
 				}
 			</script>
-			<a href="javascript:;" onclick="upload_new_display_picture()" title="Change user photo">
+			<a href="javascript:;" onclick="o2m.upload_new_display_picture()" title="Change user photo">
 				<img id="user_photo" class="img-responsive" 
 			     src="http://{{me.address}}:{{me.port}}/o2m/friend/{{me.name}}/content/{{me.photo_content_id}}"
 			     onerror="no_user_photo()">
