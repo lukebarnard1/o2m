@@ -14,7 +14,7 @@
 	
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="/extra/lib/bootstrap/js/bootstrap.min.js"></script>
-	
+
 	<script src="/extra/js/o2m.js"></script>
 
 	<style>
@@ -35,7 +35,7 @@
 
 			function content_added(response) {
 				$('.btn.btn-success').val('Uploaded')
-				content = JSON.parse(response).content
+				content = JSON.parse(response)
 				refresh_existing()
 				set_selected(content)
 			}

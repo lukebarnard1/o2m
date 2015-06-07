@@ -1,6 +1,6 @@
 o2m = (function(){
 
-	function update_friend(friend_id, data, callback) {
+	update_friend = function (friend_id, data, callback) {
 		if(!callback) {
 			callback = function(response){console.log(response.status)}
 		}
@@ -14,15 +14,16 @@ o2m = (function(){
 		})
 	}
 
-	function set_my_user_photo(content) {
+	set_my_user_photo = function (content) {
 		function done(response) {
 			window.location = '/o2m/timeline'
 		}
 		update_friend('{{me.id}}', {'photo_content_id':content.id}, done)
 	}
 
-	function upload_new_display_picture() {
+	upload_new_display_picture = function () {
 		select_content(set_my_user_photo, 'image/jpeg')
 	}
 
+	return this;
 })();
