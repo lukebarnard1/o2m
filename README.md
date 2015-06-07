@@ -1,6 +1,7 @@
 
 O2M – One to Many, The Distributed Social Network
 ==========================================================
+[![Build Status](https://travis-ci.org/lukebarnard1/o2m.svg?branch=master)](https://travis-ci.org/lukebarnard1/o2m)
 
 Introduction
 ============
