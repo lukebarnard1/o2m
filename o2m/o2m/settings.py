@@ -86,6 +86,7 @@ DATABASES = {
         'NAME': os.path.join(O2M_BASE, 'db.sqlite3'),
     }
 }
+print 'Database located here: %s' % DATABASES['default']['NAME']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
