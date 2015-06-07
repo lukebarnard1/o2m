@@ -9,6 +9,8 @@ from django.shortcuts import redirect
 
 from django.http import HttpResponse
 from o2m.basic_client.views import get_from_friend
+import json
+from django.forms.models import model_to_dict
 
 class FriendView(TimelineView):
 	
