@@ -74,6 +74,9 @@ class Content(models.Model):
 	file_path = models.FilePathField(path=o2m.settings.O2M_CONTENT_BASE, recursive=True)
 	integer = models.IntegerField(default=0) # Non-descript to allow variations
 
+	def get_mime_type(self):
+		return mimetypes.guess_type(self.file_path)[0]
+
 	def get_http_response(self):
 		"""Returns a HttpResponse that will return the file of this content.
 		"""
@@ -81,7 +84,7 @@ class Content(models.Model):
 		from wsgiref.handlers import format_date_time
 		expires = datetime.timedelta(hours=1) + datetime.datetime.now()
 
-		r = HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=mimetypes.guess_type(self.file_path)[0])
+		r = HttpResponse(FileWrapper(open(self.file_path,"rb")), content_type=self.get_mime_type())
 		r['Expires'] = format_date_time(time.mktime(expires.timetuple()))
 
 		return r

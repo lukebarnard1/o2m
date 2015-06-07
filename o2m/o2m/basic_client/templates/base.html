@@ -95,9 +95,17 @@
 				}
 			}
 
+			var select_content_mime_type = undefined
+
 			function refresh_existing() {
+				url = '/content_list'
+				console.log(select_content_mime_type)
+				if (select_content_mime_type) {
+					url = '/content_list/' + select_content_mime_type
+				}
+
 				$.ajax({
-					url: '/content_list',
+					url: url,
 					type: 'GET',
 					cache: false,
 					success: populate_existing,
@@ -105,7 +113,8 @@
 				})
 			}
 
-			function select_content(callback) {
+			function select_content(callback, mime_type) {
+				select_content_mime_type = mime_type
 				refresh_existing()
 
 				$("#select_content").modal('show');

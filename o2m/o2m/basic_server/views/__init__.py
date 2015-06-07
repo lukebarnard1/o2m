@@ -33,5 +33,5 @@ def notifications(request):
 def friend(request, friend_id=None):
 	return FriendView.as_view(friend_id=friend_id)(request)
 	
-def content_list(request):
-	return ContentListView.as_view()(request)
+def content_list(request, mime_type = None):
+	return ContentListView.as_view(mime_type = mime_type)(request)
