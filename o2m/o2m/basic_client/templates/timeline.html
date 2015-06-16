@@ -61,15 +61,20 @@
 				<li class="content media">
 					{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 					<div class="media-body panel panel-default">
-						<div class="panel-body"
-							onmouseover="$(event.target).css({'cursor':'pointer'}).parent().find('.footer-hider').animate({'height':'55px'})"
-							onmouseout="$(event.target).parent().find('.footer-hider.that-can-be-hidden').animate({'height':'0px'})"
-							onclick="$('#blackout').fadeToggle({'complete': function(){$(event.target).parent().toggleClass('focused').find('.footer-hider').toggleClass('that-can-be-hidden');}})">
+						<div class="panel-body">
 							<a href="/o2m/friend/{{link.friend.name}}">{{link.friend.name}}</a>: {{link.html | safe}}
 							<div class="pull-right">
 							    {{link.creation_time | naturaltime}} - 
-								<a href="javascript:;" onclick="$('#form_dl_{{link.link_friend.id}}_{{link.id}}').submit()" title="Delete link">delete link</a> - 
-								<a href="javascript:;" onclick="$('#form_dc_{{link.content}}').submit()" title="Delete content">delete content</a>
+								<a  
+								 href="javascript:;" 
+								 onclick="$(event.target).parent().parent().toggleClass('focused').find('.footer-hider').toggleClass('that-can-be-hidden');" 
+								 title="Comment on this">add comment</a> - 
+								<a  
+								 href="javascript:;" 
+								 onclick="$('#form_dl_{{link.link_friend.id}}_{{link.id}}').submit()" 
+								 title="Delete link">delete link</a> - 
+								<a href="javascript:;" onclick="$('#form_dc_{{link.content}}').submit()"
+								 title="Delete content">delete content</a>
 								<form id="form_dl_{{link.link_friend.id}}_{{link.id}}" action="/o2m/delete_link" method="POST">
 									{% csrf_token %}
 									<input type="hidden" name="content_id" value="{{link.content}}"/>
