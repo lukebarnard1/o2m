@@ -67,7 +67,7 @@
 							    {{link.creation_time | naturaltime}} - 
 								<a  
 								 href="javascript:;" 
-								 onclick="$(event.target).parent().parent().toggleClass('focused').find('.footer-hider').toggleClass('that-can-be-hidden');" 
+								 onclick="$(event.target).parent().parent().parent().find('.footer-hider').slideToggle({'complete':function(){$('#comment_box_{{link.link_friend.id}}_{{link.id}}').focus()}});" 
 								 title="Comment on this">add comment</a> - 
 								<a  
 								 href="javascript:;" 
@@ -86,11 +86,12 @@
 								</form>
 							</div>
 						</div>
-						<div class="footer-hider that-can-be-hidden" style="height:0px;overflow-y:hidden">
-							<div class="panel-footer">
+						<div class="footer-hider that-can-be-hidden" 
+							style="overflow-y:hidden;display:none">
+							<div class="panel-footer" style="padding:0px">
 								<form action="/o2m/add_linked_content" method="POST">
 									{% csrf_token %}
-									<input type="text" class="form-control" name="content_text" placeholder="write a comment...">
+									<input id="comment_box_{{link.link_friend.id}}_{{link.id}}" type="text" class="form-control" name="content_text" placeholder="write a comment..." style="border:0px">
 									<input type="hidden" value="{{link.content}}" name="content_id">
 									<input type="hidden" value="{{link.address}}" name="friend_address">
 									<input type="hidden" value="{{link.port}}" name="friend_port">
