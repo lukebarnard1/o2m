@@ -100,6 +100,17 @@ def add_content_link(me, friend_address, friend_port, content_text, parent_id):
 	else:
 		return response_headers, content
 
+def get_friends(me):
+
+	me = Friend.objects.get(name=me)
+	
+	headers, content = get_from_friend('/friend/', me, me)
+
+	friends = json.loads(content)
+	print friends
+
+	return friends
+
 
 def add_linked_content(request):
 	"""Adds content to the server belonging to 'me' whilst also sending a new link to the friend
@@ -186,3 +197,4 @@ def username(request):
 	logout(request)
 
 	return redirect('/o2m/login')
+

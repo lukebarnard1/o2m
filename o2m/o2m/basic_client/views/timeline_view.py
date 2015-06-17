@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django import forms
 from django.forms.models import model_to_dict
 from o2m.basic_server.models import Friend
-from o2m.basic_client.views import get_from_friend, link_to_html
+from o2m.basic_client.views import get_from_friend, link_to_html, get_friends
 import json
 import dateutil.parser
 
@@ -27,8 +27,9 @@ class TimelineView(AuthenticatedView, TemplateView):
 
 
 	def get_friends_included(self):
+		me = Friend.objects.get(name=self.username)
 		if self.just_me:
-			friends = [Friend.objects.get(name=self.username)]
+			friends = [me]
 		else:
 			friends = Friend.objects.exclude(password='NOTFRIENDS')
 		return friends
@@ -39,7 +40,7 @@ class TimelineView(AuthenticatedView, TemplateView):
 		source_address = '/timeline'
 
 		friends = self.get_friends_included()
-
+		print '(Client)Friends acquired'
 		timeline = []
 
 		should_change_username = False

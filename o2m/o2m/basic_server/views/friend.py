@@ -17,7 +17,7 @@ class FriendView(AuthenticatedView):
 		response = HttpResponse()
 
 		if self.friend_id == '':
-			friends = Friend.objects.all()
+			friends = Friend.objects.exclude(password='NOTFRIENDS')
 		else:
 			friends = Friend.objects.filter(pk=self.friend_id)
 

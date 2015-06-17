@@ -61,7 +61,7 @@
 				<li class="content media">
 					{% for level in link.level %}<div class="media-left"></div>{% endfor %}
 					<div class="media-body panel panel-default">
-						<div class="panel-body">
+						<div class="panel-body" style="padding:5px">
 							<a href="/o2m/friend/{{link.friend.name}}">{{link.friend.name}}</a>: {{link.html | safe}}
 							<div class="pull-right">
 							    {{link.creation_time | naturaltime}} - 
@@ -91,7 +91,7 @@
 							<div class="panel-footer" style="padding:0px">
 								<form action="/o2m/add_linked_content" method="POST">
 									{% csrf_token %}
-									<input id="comment_box_{{link.link_friend.id}}_{{link.id}}" type="text" class="form-control" name="content_text" placeholder="write a comment..." style="border:0px">
+									<input id="comment_box_{{link.link_friend.id}}_{{link.id}}" type="text" name="content_text" placeholder="write a comment..." style="border:0px;width:100%;padding:5px">
 									<input type="hidden" value="{{link.content}}" name="content_id">
 									<input type="hidden" value="{{link.address}}" name="friend_address">
 									<input type="hidden" value="{{link.port}}" name="friend_port">
