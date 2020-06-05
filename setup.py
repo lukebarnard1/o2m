@@ -6,7 +6,7 @@ home = expanduser("~")
 setup(
 	name = "O2M",
 	version = "0.2.0",
-	install_requires = ["django==1.8.1", "django-bootstrap3==5.4.0", "django-mptt==0.7.3", "django-mptt-admin==0.2.1", "httplib2==0.9.1", "django-ipware==1.0.0"],
+	install_requires = ["django==1.11.29", "django-bootstrap3==5.4.0", "django-mptt==0.7.3", "django-mptt-admin==0.2.1", "httplib2==0.9.1", "django-ipware==1.0.0"],
 	scripts = ['o2m/run_o2m.py'],
 	packages = ['o2m', 'static'],
     package_dir = {'':'o2m'},   # tell distutils packages are under src
